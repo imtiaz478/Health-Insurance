@@ -31,7 +31,7 @@ const categoriesData: CategoryCard[] = [
     description:
       "With our Health insurance policies, you can choose from various coverage options that protect your property, equipment,",
     iconUrl: "https://cdn-icons-png.flaticon.com/512/2966/2966327.png", // Health Icon
-    link: "#",
+    link: "/health-insurance",
   },
   {
     id: 3,
