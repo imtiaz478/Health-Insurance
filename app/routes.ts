@@ -14,6 +14,7 @@ export default [
   layout("./layout/MainLayout.tsx", [
     index("./routes/home.tsx"),
     route("health-insurance", "./routes/health-insurance.tsx"),
+    route("about", "./routes/about.tsx"),
   ]),
 
   

@@ -14,21 +14,21 @@ const newsData: NewsCard[] = [
     date: '21 June 2025',
     title: 'শোক সংবাদ',
     excerpt: 'Praesent viverra augue assumenda mauris molestie sed vitae, rutrum inventore ullamcorper...',
-    imageUrl: '/assets/news2.png',
+    imageUrl: '/news2.png',
   },
   {
     id: 2,
     date: '21 June 2025',
     title: 'শোক সংবাদ',
     excerpt: 'Praesent viverra augue assumenda mauris molestie sed vitae, rutrum inventore ullamcorper...',
-    imageUrl: '/assets/news2.png',
+    imageUrl: '/news2.png',
   },
   {
     id: 3,
     date: '21 June 2025',
     title: 'Notice (28 March, 2022)',
     excerpt: 'Praesent viverra augue assumenda mauris molestie sed vitae, rutrum inventore ullamcorper...',
-    imageUrl: '/assets/news1.jpg',
+    imageUrl: '/news1.jpg',
   },
 ];
 

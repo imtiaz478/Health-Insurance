@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Link } from "react-router"; // Next.js হলে 'next/link' ব্যবহার করবে
 import { ChevronDown, ArrowUpRight, Menu, X } from "lucide-react";
 
 const Navbar = () => {
@@ -12,7 +13,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           
           {/* Logo Section */}
-          <div className="flex-shrink-0 flex items-center gap-3">
+          <Link to="/" className="flex-shrink-0 flex items-center gap-3">
             {/* Custom Logo Icon */}
             <div className="w-10 h-10 border-2 border-[#A03822] flex items-center justify-center relative p-1">
               <div className="w-full h-full bg-[#A03822] rounded-tl-full rounded-tr-full rounded-br-full" />
@@ -26,16 +27,18 @@ const Navbar = () => {
                 Insurance Co. Ltd.
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation Menu */}
           <div className="hidden md:flex items-center space-x-8 text-gray-800 font-medium">
-            <a href="#" className="hover:text-[#A03822] transition-colors">
+            <Link to="/" className="hover:text-[#A03822] transition-colors">
               Home
-            </a>
-            <a href="#" className="hover:text-[#A03822] transition-colors">
+            </Link>
+            
+            {/* About Us Link */}
+            <Link to="/about" className="hover:text-[#A03822] transition-colors">
               About Us
-            </a>
+            </Link>
             
             {/* Services Dropdown */}
             <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#A03822] transition-colors">
@@ -49,23 +52,23 @@ const Navbar = () => {
               <ChevronDown size={18} />
             </div>
 
-            <a href="#" className="hover:text-[#A03822] transition-colors">
+            <Link to="/blogs" className="hover:text-[#A03822] transition-colors">
               Blogs
-            </a>
-            <a href="#" className="hover:text-[#A03822] transition-colors">
+            </Link>
+            <Link to="/contact" className="hover:text-[#A03822] transition-colors">
               Contact Us
-            </a>
+            </Link>
           </div>
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center">
-            <a
-              href="#"
+            <Link
+              to="/get-quote"
               className="bg-[#A03822] hover:bg-[#852e1b] text-white px-6 py-3 rounded-md font-semibold text-sm flex items-center gap-2 transition-all shadow-sm"
             >
               <span>Get A Quote</span>
               <ArrowUpRight size={18} />
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -84,12 +87,23 @@ const Navbar = () => {
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-4 pb-6 space-y-4">
-          <a href="#" className="block text-gray-800 font-medium hover:text-[#A03822]">
+          <Link 
+            to="/" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-gray-800 font-medium hover:text-[#A03822]"
+          >
             Home
-          </a>
-          <a href="#" className="block text-gray-800 font-medium hover:text-[#A03822]">
+          </Link>
+          
+          {/* Mobile About Us Link */}
+          <Link 
+            to="/about" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-gray-800 font-medium hover:text-[#A03822]"
+          >
             About Us
-          </a>
+          </Link>
+          
           <div className="flex items-center justify-between text-gray-800 font-medium hover:text-[#A03822]">
             <span>Services</span>
             <ChevronDown size={18} />
@@ -98,19 +112,28 @@ const Navbar = () => {
             <span>Claims</span>
             <ChevronDown size={18} />
           </div>
-          <a href="#" className="block text-gray-800 font-medium hover:text-[#A03822]">
+          <Link 
+            to="/blogs" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-gray-800 font-medium hover:text-[#A03822]"
+          >
             Blogs
-          </a>
-          <a href="#" className="block text-gray-800 font-medium hover:text-[#A03822]">
+          </Link>
+          <Link 
+            to="/contact" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-gray-800 font-medium hover:text-[#A03822]"
+          >
             Contact Us
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/get-quote"
+            onClick={() => setIsMobileMenuOpen(false)}
             className="w-full bg-[#A03822] text-white py-3 rounded-md font-semibold text-sm flex items-center justify-center gap-2"
           >
             <span>Get A Quote</span>
             <ArrowUpRight size={18} />
-          </a>
+          </Link>
         </div>
       )}
     </nav>

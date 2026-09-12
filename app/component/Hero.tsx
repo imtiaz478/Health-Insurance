@@ -7,7 +7,7 @@ const Hero: React.FC = () => {
       {/* Background Image using standard HTML img tag */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/assets/hero.jpg" // public/assets/hero.jpg থেকে ইমেজ পাবে
+          src="/hero.jpg" // public/assets/hero.jpg থেকে ইমেজ পাবে
           alt="Hero Background"
           className="w-full h-full object-cover object-center"
         />

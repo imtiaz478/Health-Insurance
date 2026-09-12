@@ -14,7 +14,7 @@ const ClaimSection: React.FC = () => {
           
           {/* Main Image */}
           <img
-            src="/assets/family.png" // public/assets/family.png পাথ ব্যবহার করুন
+            src="/family.png" // public/assets/family.png পাথ ব্যবহার করুন
             alt="Happy Family"
             className="w-full h-auto object-contain relative z-10"
           />
