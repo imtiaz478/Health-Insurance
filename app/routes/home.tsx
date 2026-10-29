@@ -11,7 +11,7 @@ import FooterCallToAction from "~/component/FooterCallToAction";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Dazzling Diva" },
+    { title: "Insurance Company" },
     { name: "description", content: "Welcome to Dazzling Diva!" },
   ];
 }
@@ -26,7 +26,7 @@ export default function Home() {
        <PartnersAndProcess></PartnersAndProcess>
        <NewsAndEvents></NewsAndEvents>
        <MobileAppPromo></MobileAppPromo>
-       <FooterCallToAction></FooterCallToAction>
+       
        
     </div>
   );

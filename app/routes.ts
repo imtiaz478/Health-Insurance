@@ -1,21 +1,18 @@
+
 import {
   type RouteConfig,
- 
   index,
   layout,
   route,
- 
 } from "@react-router/dev/routes";
 
 export default [
-  
-
-
   layout("./layout/MainLayout.tsx", [
     index("./routes/home.tsx"),
     route("health-insurance", "./routes/health-insurance.tsx"),
     route("about", "./routes/about.tsx"),
+    route("blogs", "./routes/blogs.tsx"),
+    route("contact", "./routes/contact.tsx"),
+    route("get-quote", "./routes/get-quote.tsx"),
   ]),
-
-  
 ] satisfies RouteConfig;

@@ -1,13 +1,13 @@
+
 import React from "react";
+import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 
-// Swiper CSS
 import "swiper/css";
 import "swiper/css/pagination";
 
-// Category Data Interface
 interface CategoryCard {
   id: number;
   title: string;
@@ -21,61 +21,63 @@ const categoriesData: CategoryCard[] = [
     id: 1,
     title: "FIRE INSURANCE",
     description:
-      "With our Fire insurance policies, you can choose from various coverage options that protect your property, equipment,",
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/785/785116.png", // Fire Icon
+      "Protect your property, buildings, equipment, and other insured assets against covered fire-related losses.",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/785/785116.png",
     link: "#",
   },
   {
     id: 2,
     title: "HEALTH INSURANCE",
     description:
-      "With our Health insurance policies, you can choose from various coverage options that protect your property, equipment,",
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2966/2966327.png", // Health Icon
+      "Explore health insurance solutions designed to help you manage eligible medical expenses and healthcare needs.",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2966/2966327.png",
     link: "/health-insurance",
   },
   {
     id: 3,
     title: "MOTOR INSURANCE",
     description:
-      "Motor Car insurance provides comprehensive protection for your vehicles, covering accidents, theft.",
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png", // Motor Icon
+      "Explore protection options for your vehicle against covered accidents, damage, and other insured risks.",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
     link: "#",
   },
   {
     id: 4,
     title: "MARINE INSURANCE",
     description:
-      "We offer comprehensive coverage for your vessels, cargo, and goods against physical damage.",
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2942/2942816.png", // Marine Icon
+      "Explore insurance options for eligible vessels, cargo, and goods against covered marine-related risks.",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2942/2942816.png",
     link: "#",
   },
   {
     id: 5,
     title: "ENGINEERING INSURANCE",
     description:
-      "Comprehensive protection for plant, machinery, and construction projects against damage or breakdown.",
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/1063/1063196.png", // Engineering Icon
+      "Explore coverage options for eligible machinery, equipment, and construction projects against insured risks.",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/1063/1063196.png",
     link: "#",
   },
 ];
 
 const InsuranceCategories: React.FC = () => {
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white w-full overflow-hidden">
-      <div className="max-w-7xl mx-auto text-center">
-        
+    <section className="w-full overflow-hidden bg-white px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl text-center">
         {/* Section Title */}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight uppercase">
-          CATEGORIES OF INSURANCE
+        <h2 className="text-2xl font-extrabold uppercase tracking-tight text-gray-900 sm:text-3xl md:text-4xl">
+          Categories of Insurance
         </h2>
 
         {/* Section Description */}
-        <p className="mt-4 text-xs sm:text-sm text-gray-600 max-w-4xl mx-auto leading-relaxed">
-          At SIPLC, we exceed customer expectations by being available both physically and virtually on their preferred channels. As a leading general insurer in Bangladesh, we are committed to continuous development and improvement, ensuring every citizen can access insurance benefits without hindrance
+        <p className="mx-auto mt-4 max-w-4xl text-xs leading-relaxed text-gray-600 sm:text-sm">
+          At Purabi General Insurance Co. Ltd., we are committed to providing
+          reliable insurance solutions for individuals and businesses across
+          Bangladesh. Our goal is to help protect your health, property,
+          vehicles, and business through suitable insurance coverage.
         </p>
 
-        {/* Swiper Slider Container */}
-        <div className="mt-12 relative pb-6">
+        {/* Insurance Category Slider */}
+        <div className="relative mt-12 pb-6">
           <Swiper
             modules={[Autoplay, Pagination]}
             spaceBetween={24}
@@ -84,6 +86,9 @@ const InsuranceCategories: React.FC = () => {
             autoplay={{
               delay: 3500,
               disableOnInteraction: false,
+            }}
+            pagination={{
+              clickable: true,
             }}
             breakpoints={{
               640: {
@@ -100,54 +105,64 @@ const InsuranceCategories: React.FC = () => {
           >
             {categoriesData.map((item) => (
               <SwiperSlide key={item.id} className="h-full">
-                <div className="relative bg-[#FAF3F0] rounded-2xl p-6 flex flex-col items-center text-center h-[340px] justify-between transition-all duration-300 hover:shadow-lg">
-                  
-                  {/* Icon */}
-                  <div className="w-20 h-20 flex items-center justify-center mt-2">
+                <div className="relative flex h-[340px] flex-col items-center justify-between rounded-2xl bg-[#FAF3F0] p-6 text-center transition-all duration-300 hover:shadow-lg">
+                  {/* Category Icon */}
+                  <div className="mt-2 flex h-20 w-20 items-center justify-center">
                     <img
                       src={item.iconUrl}
-                      alt={item.title}
-                      className="w-full h-full object-contain"
+                      alt={`${item.title} icon`}
+                      className="h-full w-full object-contain"
+                      loading="lazy"
                     />
                   </div>
 
-                  {/* Text Content */}
+                  {/* Category Details */}
                   <div className="space-y-3">
-                    <h3 className="font-extrabold text-gray-900 text-sm tracking-wide">
+                    <h3 className="text-sm font-extrabold tracking-wide text-gray-900">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed px-2 line-clamp-4">
+
+                    <p className="line-clamp-4 px-2 text-xs leading-relaxed text-gray-600">
                       {item.description}
                     </p>
                   </div>
 
-                  {/* Circular Arrow Button */}
+                  {/* Category Link */}
                   <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
-                    <a
-                      href={item.link}
-                      className="w-11 h-11 bg-[#A03822] hover:bg-[#852e1b] rounded-full flex items-center justify-center text-white transition-transform duration-200 hover:scale-110 shadow-md"
-                    >
-                      <ArrowUpRight size={20} />
-                    </a>
+                    {item.link.startsWith("/") ? (
+                      <Link
+                        to={item.link}
+                        aria-label={`Learn more about ${item.title}`}
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-[#A03822] text-white shadow-md transition-all duration-200 hover:scale-110 hover:bg-[#852e1b]"
+                      >
+                        <ArrowUpRight size={20} />
+                      </Link>
+                    ) : (
+                      <a
+                        href={item.link}
+                        aria-label={`Learn more about ${item.title}`}
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-[#A03822] text-white shadow-md transition-all duration-200 hover:scale-110 hover:bg-[#852e1b]"
+                      >
+                        <ArrowUpRight size={20} />
+                      </a>
+                    )}
                   </div>
-
                 </div>
               </SwiperSlide>
             ))}
           </Swiper>
         </div>
 
-        {/* See More Button */}
+        {/* See More */}
         <div className="mt-8">
-          <a
-            href="#"
-            className="inline-flex items-center gap-2 bg-[#A03822] hover:bg-[#852e1b] text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all shadow-sm"
+          <Link
+            to="/about"
+            className="inline-flex items-center gap-2 rounded-md bg-[#A03822] px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#852e1b]"
           >
             <span>See More</span>
             <ArrowUpRight size={18} />
-          </a>
+          </Link>
         </div>
-
       </div>
     </section>
   );
