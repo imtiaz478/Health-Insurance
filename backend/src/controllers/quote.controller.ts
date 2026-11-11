@@ -2,6 +2,7 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import prisma from "../config/database.js";
+import type { AuthenticatedRequest } from "../middleware/customerAuth.middleware.js";
 
 const quoteSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -66,6 +67,49 @@ export const createQuote = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Quote submission error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+export const getMyQuotes = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.customerId) {
+      return res.status(401).json({
+        success: false,
+        message: "Customer authentication required.",
+      });
+    }
+
+    const quotes = await prisma.quote.findMany({
+      where: {
+        customerId: req.customerId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        insuranceType: true,
+        details: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: quotes,
+    });
+  } catch (error) {
+    console.error("Get customer quotes error:", error);
 
     return res.status(500).json({
       success: false,

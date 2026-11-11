@@ -76,3 +76,49 @@ export const createClaim = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+import type { AuthenticatedRequest } from "../middleware/customerAuth.middleware.js";
+
+export const getMyClaims = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.customerId) {
+      return res.status(401).json({
+        success: false,
+        message: "Customer authentication required.",
+      });
+    }
+
+    const claims = await prisma.claim.findMany({
+      where: {
+        customerId: req.customerId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        policyNumber: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: claims,
+    });
+  } catch (error) {
+    console.error("Get customer claims error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};

@@ -2,6 +2,14 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "../config/database.js";
+import jwt from "jsonwebtoken";
+
+import {
+  customerAuth,
+
+} from "../middleware/customerAuth.middleware.js";
+
+import type { AuthenticatedRequest } from "../middleware/customerAuth.middleware.js";
 
 const registerSchema = z.object({
   name: z
@@ -87,6 +95,149 @@ export const registerCustomer = async (
     });
   } catch (error) {
     console.error("Customer registration error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+
+export const loginCustomer = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const loginSchema = z.object({
+      phone: z
+        .string()
+        .trim()
+        .min(8, "Valid phone number is required"),
+
+      password: z
+        .string()
+        .min(1, "Password is required"),
+    });
+
+    const validation = loginSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid login data",
+        errors: validation.error.flatten().fieldErrors,
+      });
+    }
+
+    const { phone, password } = validation.data;
+
+    // Find customer
+    const customer = await prisma.customer.findUnique({
+      where: {
+        phone,
+      },
+    });
+
+    if (!customer || !customer.passwordHash) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid phone number or password.",
+      });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      customer.passwordHash
+    );
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid phone number or password.",
+      });
+    }
+
+    // Generate JWT token
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+      throw new Error("JWT_SECRET is not configured");
+    }
+
+    const token = jwt.sign(
+      {
+        customerId: customer.id,
+      },
+      jwtSecret,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful!",
+      data: {
+        token,
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Customer login error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+
+export const getCustomerProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.customerId) {
+      return res.status(401).json({
+        success: false,
+        message: "Customer authentication required.",
+      });
+    }
+
+    const customer = await prisma.customer.findUnique({
+      where: {
+        id: req.customerId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+      },
+    });
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: customer,
+    });
+  } catch (error) {
+    console.error("Get customer profile error:", error);
 
     return res.status(500).json({
       success: false,

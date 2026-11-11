@@ -15,5 +15,8 @@ export default [
     route("contact", "./routes/contact.tsx"),
     route("get-quote", "./routes/get-quote.tsx"),
     route("claim", "./routes/claim.tsx"),
+    route("register", "./routes/register.tsx"),
+    route("login", "./routes/login.tsx"),
+    route("dashboard", "./routes/dashboard.tsx"),
   ]),
 ] satisfies RouteConfig;

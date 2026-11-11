@@ -1,8 +1,14 @@
 import { Router } from "express";
-import { createQuote } from "../controllers/quote.controller.js";
+import {
+  createQuote,
+  getMyQuotes,
+} from "../controllers/quote.controller.js";
+import { customerAuth } from "../middleware/customerAuth.middleware.js";
 
 const router = Router();
 
 router.post("/", createQuote);
+
+router.get("/my-quotes", customerAuth, getMyQuotes);
 
 export default router;
