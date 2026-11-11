@@ -1,3 +1,4 @@
+
 import type { Route } from "./+types/contact";
 import { useState, type FormEvent } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
@@ -15,8 +16,9 @@ export function meta({}: Route.MetaArgs) {
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const form = event.currentTarget;
@@ -26,21 +28,53 @@ export default function Contact() {
     const email = String(formData.get("email") ?? "").trim();
     const text = String(formData.get("message") ?? "").trim();
 
-    if (!name || !email || text.length < 5) {
-      setMessage("Please fill in all fields. Message must be at least 5 characters.");
+    if (!name || !email || text.length < 10) {
+      setIsSuccess(false);
+      setMessage("Please fill in all fields. Message must be at least 10 characters.");
       return;
     }
 
     setIsSubmitting(true);
     setMessage("");
+    setIsSuccess(false);
 
-    // Frontend demonstration only. No message is sent to a server.
-    setMessage(
-      "Thank you for contacting us! Your form was validated, but your message has not been sent because the backend is not connected yet."
-    );
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            message: text,
+          }),
+        }
+      );
 
-    form.reset();
-    setIsSubmitting(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit your message.");
+      }
+
+      setIsSuccess(true);
+      setMessage(data.message || "Your message has been submitted successfully!");
+      form.reset();
+    } catch (error) {
+      console.error("Contact form error:", error);
+
+      setIsSuccess(false);
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -142,7 +176,7 @@ export default function Contact() {
             name="message"
             placeholder="Your message"
             required
-            minLength={5}
+            minLength={10}
             maxLength={2000}
             rows={5}
             className="w-full resize-y rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-[#A03822]"
@@ -151,7 +185,11 @@ export default function Contact() {
           {message && (
             <p
               role="status"
-              className="rounded-lg bg-[#FAF3F0] p-3 text-sm leading-6 text-[#852e1b]"
+              className={`rounded-lg p-3 text-sm leading-6 ${
+                isSuccess
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-700"
+              }`}
             >
               {message}
             </p>

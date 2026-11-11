@@ -1,163 +1,183 @@
-import React from 'react';
 
-// Simple Inline SVG Logos for Partners (No external asset files needed)
-const PartnerLogos = {
-  Walton: () => (
-    <svg className="h-8 fill-current text-blue-700" viewBox="0 0 100 40">
-      <path d="M10 30 L25 10 L35 25 L45 10 L60 30 L50 30 L42 18 L35 30 L28 18 L20 30 Z" fill="#0052CC"/>
-      <text x="62" y="28" fontSize="12" fontWeight="bold" fill="#0052CC">WALTON</text>
-    </svg>
-  ),
-  Incepta: () => (
-    <div className="flex items-center gap-1 font-bold text-blue-600 text-lg">
-      <span className="text-xl italic">incepta</span>
-    </div>
-  ),
-  Acme: () => (
-    <div className="flex items-center gap-1 text-red-600 font-bold tracking-tighter">
-      <span className="border border-red-600 rounded-full px-1 text-xs">⚕</span>
-      <span>ACME</span>
-    </div>
-  ),
-  Doreen: () => (
-    <div className="flex items-center gap-1 text-red-700 font-bold text-xs uppercase">
-      <span>Doreen</span>
-      <span className="text-red-500 font-normal">Power</span>
-    </div>
-  ),
-  Healthcare: () => (
-    <div className="text-[10px] font-semibold text-blue-900 border border-blue-900 p-1 text-center">
-      Healthcare Pharmaceuticals
-    </div>
-  ),
-  General: () => (
-    <div className="text-[11px] font-bold text-blue-800 tracking-tight">
-      GENERAL PHARMA
-    </div>
-  ),
-  Palmal: () => (
-    <div className="flex items-center gap-1 text-green-700 font-extrabold text-sm">
-      <span className="border-2 border-green-700 px-1">P</span>
-      <span>PALMAL</span>
-    </div>
-  )
-};
+import React from "react";
+import { Link } from "react-router";
+import {
+  ShieldCheck,
+  FileText,
+  ClipboardCheck,
+  Headset,
+  ArrowUpRight,
+  CheckCircle2,
+} from "lucide-react";
 
-const partners = [
-  { id: 1, component: <PartnerLogos.Walton /> },
-  { id: 2, component: <PartnerLogos.Incepta /> },
-  { id: 3, component: <PartnerLogos.Acme /> },
-  { id: 4, component: <PartnerLogos.Doreen /> },
-  { id: 5, component: <PartnerLogos.Healthcare /> },
-  { id: 6, component: <PartnerLogos.General /> },
-  { id: 7, component: <PartnerLogos.Palmal /> },
+const benefits = [
+  {
+    id: 1,
+    icon: ShieldCheck,
+    title: "Insurance Protection",
+    description:
+      "Explore insurance coverage options designed to help protect your health, property and other valuable assets.",
+  },
+  {
+    id: 2,
+    icon: ClipboardCheck,
+    title: "Simple Application",
+    description:
+      "Share your insurance requirements and contact information to begin your enquiry.",
+  },
+  {
+    id: 3,
+    icon: Headset,
+    title: "Customer Assistance",
+    description:
+      "Contact our team for information about insurance products, documentation and claim-related enquiries.",
+  },
 ];
 
 const processSteps = [
   {
-    stepNumber: '01',
-    title: 'Get A Quotetation',
-    description: "Answer a couple of questions, we'll provide accurate live quotes.",
-    // Online Placeholder Image (Unsplash)
-    imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300'
+    stepNumber: "01",
+    title: "Choose Your Insurance",
+    description:
+      "Explore available insurance categories and select the coverage you are interested in.",
+    icon: ShieldCheck,
   },
   {
-    stepNumber: '02',
-    title: 'Complete The Aplication',
-    description: "Answer a couple of questions, we'll provide accurate live quotes.",
-    imageUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=300'
+    stepNumber: "02",
+    title: "Submit Your Enquiry",
+    description:
+      "Provide your contact details and describe your insurance requirements through our enquiry form.",
+    icon: FileText,
   },
   {
-    stepNumber: '03',
-    title: 'Get your Insurance',
-    description: "Answer a couple of questions, we'll provide accurate live quotes.",
-    imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=300'
+    stepNumber: "03",
+    title: "Get Assistance",
+    description:
+      "Contact the Purabi team to discuss applicable coverage, policy conditions and next steps.",
+    icon: Headset,
   },
 ];
 
 const PartnersAndProcess: React.FC = () => {
   return (
-    <section className="w-full bg-white py-12 px-4 md:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-12">
-        
-        {/* Partners Section */}
-        <div className="text-center">
-          <h2 className="text-lg md:text-xl font-bold tracking-wider text-gray-800 uppercase mb-6">
-            OUR GENUINE TRUSTED PARTNERS &amp; CLIENTS
-          </h2>
-          <div className="border border-gray-200 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 divide-x divide-y md:divide-y-0 divide-gray-200 rounded-sm bg-white overflow-hidden">
-            {partners.map((partner) => (
-              <div
-                key={partner.id}
-                className="p-3 flex items-center justify-center h-20 hover:bg-gray-50 transition-colors"
-              >
-                {partner.component}
-              </div>
-            ))}
+    <section className="w-full bg-white px-4 py-14 font-sans sm:px-6 md:px-8">
+      <div className="mx-auto max-w-6xl space-y-16">
+
+        {/* Insurance Benefits Section */}
+        <div>
+          <div className="mb-10 text-center">
+            <p className="mb-2 text-sm font-bold uppercase tracking-widest text-[#A03822]">
+              Why Choose Us
+            </p>
+
+            <h2 className="text-2xl font-extrabold uppercase tracking-wide text-gray-900 sm:text-3xl">
+              Insurance Made Simple
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-gray-600">
+              Explore insurance solutions and get information about coverage,
+              application requirements and customer assistance from Purabi
+              General Insurance Co. Ltd.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {benefits.map((benefit) => {
+              const Icon = benefit.icon;
+
+              return (
+                <div
+                  key={benefit.id}
+                  className="rounded-2xl border border-gray-100 bg-[#FAF3F0] p-7 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#A03822] shadow-sm">
+                    <Icon size={30} />
+                  </div>
+
+                  <h3 className="mb-3 text-lg font-bold text-gray-900">
+                    {benefit.title}
+                  </h3>
+
+                  <p className="text-sm leading-7 text-gray-600">
+                    {benefit.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Process Section with Background Image */}
-        <div
-          className="relative rounded-2xl overflow-hidden bg-cover bg-center py-12 px-4 md:px-10 shadow-2xl"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&q=80&w=1600')",
-          }}
-        >
-          {/* Overlay color for contrast */}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
+        {/* Working Process Section */}
+        <div className="relative overflow-hidden rounded-2xl bg-[#752D20] px-5 py-12 shadow-xl sm:px-8 md:px-10">
 
-          {/* Frosted Glass Box */}
-          <div className="relative z-10 max-w-5xl mx-auto bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-6 md:p-10 text-white text-center shadow-xl">
-            
-            {/* Header Tag */}
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="w-6 h-[1px] bg-white/70"></span>
-              <span className="text-[11px] uppercase tracking-widest text-white/90 font-semibold">
-                INSURANCE SIMPLIFIED
+          {/* Decorative Background */}
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/5" />
+          <div className="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-white/5" />
+
+          <div className="relative z-10 mx-auto max-w-5xl text-center text-white">
+
+            {/* Header */}
+            <div className="mb-3 flex items-center justify-center gap-2">
+              <span className="h-px w-6 bg-white/70" />
+
+              <span className="text-[11px] font-semibold uppercase tracking-widest text-white/90">
+                Insurance Simplified
               </span>
-              <span className="w-6 h-[1px] bg-white/70"></span>
+
+              <span className="h-px w-6 bg-white/70" />
             </div>
 
-            <h2 className="text-2xl md:text-4xl font-extrabold tracking-wide mb-3 uppercase drop-shadow-sm">
-              OUR WORKING PROCESS
+            <h2 className="mb-4 text-2xl font-extrabold uppercase tracking-wide sm:text-3xl md:text-4xl">
+              Our Working Process
             </h2>
 
-            <p className="max-w-3xl mx-auto text-xs md:text-sm text-white/90 leading-relaxed mb-10 font-normal">
-              Our process makes insurance simple and stress-free, from personalized consultations and tailored solutions to swift
-              activation and ongoing support. We ensure reliable protection and hassle-free claims every step of the way.
+            <p className="mx-auto mb-12 max-w-3xl text-sm leading-7 text-white/85">
+              Getting started with an insurance enquiry is simple. Follow
+              these steps to explore your options and get assistance from
+              our team.
             </p>
 
-            {/* Steps Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
-              {processSteps.map((step) => (
-                <div key={step.stepNumber} className="flex flex-col items-center text-center">
-                  
-                  {/* Step Image with Badge */}
-                  <div className="relative mb-5">
-                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-white/50 p-1 bg-white/10 shadow-md">
-                      <img
-                        src={step.imageUrl}
-                        alt={step.title}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    </div>
-                    {/* Number Badge */}
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-md">
-                      {step.stepNumber}
-                    </div>
-                  </div>
+            {/* Process Steps */}
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
+              {processSteps.map((step) => {
+                const Icon = step.icon;
 
-                  {/* Step Info */}
-                  <h3 className="text-base font-bold text-white mb-1.5">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs text-white/80 max-w-xs leading-relaxed">
-                    {step.description}
-                  </p>
-                  
-                </div>
-              ))}
+                return (
+                  <div
+                    key={step.stepNumber}
+                    className="flex flex-col items-center text-center"
+                  >
+                    {/* Icon */}
+                    <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-full border-2 border-white/50 bg-white/10 shadow-lg sm:h-28 sm:w-28">
+                      <Icon className="h-10 w-10 text-white sm:h-12 sm:w-12" />
+
+                      <div className="absolute -bottom-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#A03822] text-xs font-bold text-white shadow-md">
+                        {step.stepNumber}
+                      </div>
+                    </div>
+
+                    {/* Step Info */}
+                    <h3 className="mb-3 text-base font-bold text-white sm:text-lg">
+                      {step.title}
+                    </h3>
+
+                    <p className="max-w-xs text-sm leading-6 text-white/80">
+                      {step.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* CTA */}
+            <div className="mt-12">
+              <Link
+                to="/get-quote"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-bold text-[#A03822] shadow-md transition-all hover:bg-[#FAF3F0] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#752D20]"
+              >
+                Get a Quote
+                <ArrowUpRight size={18} />
+              </Link>
             </div>
 
           </div>

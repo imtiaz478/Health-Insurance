@@ -1,75 +1,81 @@
+
 import React from "react";
+import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 
 const ClaimSection: React.FC = () => {
   return (
-    <section className="w-full bg-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
-        
-        {/* Left Side: Family Image with Circular Backdrop */}
-        <div className="relative w-full max-w-md flex justify-center items-center">
-          {/* Subtle Pink/Beige Decorative Background Circles */}
-          <div className="absolute w-72 h-72 sm:w-80 sm:h-80 bg-[#FAF3F0] rounded-full -z-10 scale-110" />
-          <div className="absolute w-60 h-60 sm:w-64 sm:h-64 bg-[#F5E6E0] rounded-full -z-10" />
-          
+    <section className="w-full overflow-hidden bg-white px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-8 lg:flex-row lg:gap-12">
+
+        {/* Left Side: Family Image */}
+        <div className="relative flex w-full max-w-md items-center justify-center">
+          {/* Decorative Circles */}
+          <div className="absolute -z-10 h-72 w-72 scale-110 rounded-full bg-[#FAF3F0] sm:h-80 sm:w-80" />
+
+          <div className="absolute -z-10 h-60 w-60 rounded-full bg-[#F5E6E0] sm:h-64 sm:w-64" />
+
           {/* Main Image */}
           <img
-            src="/family.png" // public/assets/family.png পাথ ব্যবহার করুন
-            alt="Happy Family"
-            className="w-full h-auto object-contain relative z-10"
+            src="/family.png"
+            alt="Happy family representing insurance protection"
+            loading="lazy"
+            className="relative z-10 h-auto w-full object-contain"
           />
         </div>
 
         {/* Right Side: Content Box */}
-        <div className="w-full max-w-2xl bg-[#FAF3F0] border border-[#F3E5E0] rounded-3xl p-8 sm:p-12 space-y-6">
-          
+        <div className="w-full max-w-2xl space-y-6 rounded-3xl border border-[#F3E5E0] bg-[#FAF3F0] p-6 sm:p-10 md:p-12">
+
           {/* Subheading */}
-          <span className="text-xs sm:text-sm font-bold tracking-wider text-gray-700 uppercase">
+          <span className="text-xs font-bold tracking-wider text-[#A03822] sm:text-sm">
             BE HAPPY TO GET INSURANCE
           </span>
 
           {/* Heading */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
-            Start Tracking Your Claims
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-4xl md:text-5xl">
+            Need Help With Your Insurance Claim?
           </h2>
 
           {/* Description */}
-          <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-xl">
-            Enjoy peace of mind with hassle-free insurance. Track your claims effortlessly and stay informed every step of the way.
+          <p className="max-w-xl text-sm leading-relaxed text-gray-600 sm:text-base">
+            Have questions about your insurance claim? Get in touch with our
+            team for assistance with claim-related enquiries and information
+            about the required documents and procedures.
           </p>
 
           {/* Action Row */}
-          <div className="pt-2 flex flex-wrap items-center gap-4 sm:gap-6">
-            {/* CTA Button */}
-            <a
-              href="#"
-              className="bg-[#A03822] hover:bg-[#852e1b] text-white font-semibold text-sm px-7 py-3.5 rounded-xl flex items-center gap-2 transition-all shadow-sm"
-            >
-              <span>Claim Coverage</span>
-              <ArrowUpRight size={18} />
-            </a>
+          <div className="flex flex-wrap items-center gap-4 pt-2 sm:gap-6">
 
-            {/* Separator OR */}
+            {/* CTA Button */}
+            <Link
+              to="/claim"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#A03822] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#852e1b] focus:outline-none focus:ring-2 focus:ring-[#A03822] focus:ring-offset-2"
+            >
+              <span>Claim Assistance</span>
+              <ArrowUpRight size={18} />
+            </Link>
+
+            {/* Separator */}
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
-              <span className="w-6 h-[1px] bg-gray-300" />
+              <span className="h-px w-6 bg-gray-300" />
               <span>OR</span>
-              <span className="w-6 h-[1px] bg-gray-300" />
+              <span className="h-px w-6 bg-gray-300" />
             </div>
 
-            {/* Mail Contact */}
-            <div className="text-xs sm:text-sm text-gray-600">
+            {/* Email Contact */}
+            <div className="text-xs text-gray-600 sm:text-sm">
               <span>Mail Us Anytime: </span>
+
               <a
                 href="mailto:purabiinsurance@gmail.com"
-                className="font-bold text-gray-900 hover:text-[#A03822] transition-colors"
+                className="break-all font-bold text-gray-900 transition-colors hover:text-[#A03822] focus:outline-none focus:underline"
               >
                 purabiinsurance@gmail.com
               </a>
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
   );

@@ -1,71 +1,140 @@
-import React from "react";
-import { Play } from "lucide-react";
+import React, { useState } from "react";
+import { Link } from "react-router";
+import { Play, X } from "lucide-react";
 
 const Hero: React.FC = () => {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  // Replace this with the official company video URL when available.
+  const videoUrl = "";
+
   return (
-    <section className="relative w-full min-h-[550px] lg:min-h-[650px] flex items-center bg-gray-900 overflow-hidden">
-      {/* Background Image using standard HTML img tag */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="/hero.jpg" // public/assets/hero.jpg থেকে ইমেজ পাবে
-          alt="Hero Background"
-          className="w-full h-full object-cover object-center"
-        />
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/60 md:bg-black/50" />
-      </div>
+    <>
+      <section className="relative flex min-h-[550px] w-full items-center overflow-hidden bg-gray-900 lg:min-h-[650px]">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/hero.jpg"
+            alt="Purabi General Insurance background"
+            className="h-full w-full object-cover object-center"
+          />
 
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full">
-        <div className="max-w-2xl text-white space-y-6">
-          
-          {/* Tagline */}
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-[2px] bg-white/70" />
-            <span className="text-sm md:text-base font-medium tracking-wide text-gray-200">
-              Protecting Value Through Innovation
-            </span>
-          </div>
+          {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-black/60 md:bg-black/50" />
+        </div>
 
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-            Leading Insurance Solutions for Your Peace of Mind
-          </h1>
+        {/* Hero Content */}
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="max-w-2xl space-y-6 text-white">
+            {/* Tagline */}
+            <div className="flex items-center gap-3">
+              <span className="h-[2px] w-8 bg-white/70" />
 
-          {/* Description */}
-          <p className="text-gray-300 text-sm md:text-base leading-relaxed max-w-xl font-light">
-            Purabi General Insurance Company Limited (PGICL), established in 1988, 
-            is a leading insurer in Bangladesh, providing comprehensive asset protection 
-            for corporate organizations.
-          </p>
-
-          {/* Action Buttons */}
-          <div className="pt-4 flex flex-wrap items-center gap-6">
-            {/* Discover More Button */}
-            <a
-              href="#"
-              className="bg-[#A03822] hover:bg-[#852e1b] text-white font-semibold text-xs sm:text-sm tracking-wider uppercase px-8 py-4 rounded transition-all duration-200 shadow-md"
-            >
-              Discover More
-            </a>
-
-            {/* Watch Video Button */}
-            <button
-              onClick={() => {}}
-              className="flex items-center gap-3 text-white font-semibold text-xs sm:text-sm tracking-wider uppercase group focus:outline-none"
-            >
-              <div className="w-10 h-10 rounded-full border-2 border-white/80 flex items-center justify-center group-hover:scale-105 group-hover:border-white transition-all">
-                <Play size={14} className="fill-white ml-0.5" />
-              </div>
-              <span className="group-hover:text-gray-200 transition-colors">
-                Watch Video
+              <span className="text-sm font-medium tracking-wide text-gray-200 md:text-base">
+                Protecting Value Through Innovation
               </span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+              Leading Insurance Solutions for Your Peace of Mind
+            </h1>
+
+            {/* Description */}
+            <p className="max-w-xl text-sm font-light leading-relaxed text-gray-300 md:text-base">
+              Purabi General Insurance Company Limited (PGICL) provides
+              insurance solutions to help individuals and businesses protect
+              against unexpected risks.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-6 pt-4">
+              {/* Discover More */}
+              <Link
+                to="/about"
+                className="rounded bg-[#A03822] px-8 py-4 text-xs font-semibold uppercase tracking-wider text-white shadow-md transition-all duration-200 hover:bg-[#852e1b] sm:text-sm"
+              >
+                Discover More
+              </Link>
+
+              {/* Watch Video */}
+              <button
+                type="button"
+                onClick={() => setIsVideoOpen(true)}
+                className="group flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-sm"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/80 transition-all group-hover:scale-105 group-hover:border-white">
+                  <Play size={14} className="ml-0.5 fill-white" />
+                </div>
+
+                <span className="transition-colors group-hover:text-gray-200">
+                  Watch Video
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Video Modal */}
+      {isVideoOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setIsVideoOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsVideoOpen(false)}
+              aria-label="Close video modal"
+              className="absolute right-4 top-4 rounded-full p-2 text-gray-600 transition hover:bg-gray-100 hover:text-black"
+            >
+              <X size={24} />
+            </button>
+
+            <h2 className="pr-10 text-xl font-bold text-gray-900 sm:text-2xl">
+              Purabi General Insurance
+            </h2>
+
+            {videoUrl ? (
+              <div className="mt-6 aspect-video overflow-hidden rounded-xl bg-black">
+                <iframe
+                  src={videoUrl}
+                  title="Purabi General Insurance company video"
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="mt-6 flex aspect-video flex-col items-center justify-center rounded-xl bg-[#FAF3F0] px-6 text-center">
+                <Play size={44} className="text-[#A03822]" />
+
+                <p className="mt-4 text-lg font-semibold text-gray-900">
+                  Company Video
+                </p>
+
+                <p className="mt-2 max-w-md text-sm leading-6 text-gray-600">
+                  The official company video has not been added yet. Add the
+                  video URL to enable playback.
+                </p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsVideoOpen(false)}
+              className="mt-6 rounded-lg bg-[#A03822] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#852e1b]"
+            >
+              Close
             </button>
           </div>
-
         </div>
-      </div>
-    </section>
+      )}
+    </>
   );
 };
 

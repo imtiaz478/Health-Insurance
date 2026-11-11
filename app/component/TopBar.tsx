@@ -8,70 +8,104 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 
-const TopBar = () => {
+const socialLinks = [
+  { name: "Facebook", Icon: FaFacebookF, href: "" },
+  { name: "Twitter", Icon: FaTwitter, href: "" },
+  { name: "YouTube", Icon: FaYoutube, href: "" },
+  { name: "Instagram", Icon: FaInstagram, href: "" },
+  { name: "LinkedIn", Icon: FaLinkedinIn, href: "" },
+];
+
+const TopBar: React.FC = () => {
   return (
-    <div className="bg-[#A03822] text-white py-2 px-4 md:px-8 text-xs sm:text-sm font-medium">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-3">
-        
-        {/* Left Side: Contact Info */}
-        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6">
-          {/* Address */}
+    <div className="bg-[#A03822] px-4 py-2 text-xs font-medium text-white sm:text-sm md:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 lg:flex-row">
+        {/* Left Side: Contact Information */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:justify-start">
+          {/* Office Address */}
           <div className="flex items-center gap-1.5">
             <MapPin size={15} className="shrink-0" />
-            <span>Sandhani Life Tower (2nd Floor), 34 Bangla Motor, Dhaka - 1000.</span>
+
+            <span>
+              Sandhani Life Tower (2nd Floor), 34 Bangla Motor, Dhaka - 1000.
+            </span>
           </div>
 
           {/* Email */}
           <a
             href="mailto:purabiinsurance@gmail.com"
-            className="flex items-center gap-1.5 hover:underline transition-all"
+            aria-label="Email Purabi General Insurance"
+            className="flex items-center gap-1.5 transition-all hover:underline"
           >
             <Mail size={15} className="shrink-0" />
+
             <span>purabiinsurance@gmail.com</span>
           </a>
 
           {/* Phone */}
           <a
             href="tel:+8801714044146"
-            className="flex items-center gap-1.5 hover:underline transition-all"
+            aria-label="Call Purabi General Insurance"
+            className="flex items-center gap-1.5 transition-all hover:underline"
           >
             <Phone size={15} className="shrink-0" />
+
             <span>+880 1714-044146</span>
           </a>
         </div>
 
-        {/* Right Side: Portals & Social Links */}
-        <div className="flex items-center gap-4 sm:gap-6">
-          {/* Client & Agent Portals */}
-          <div className="flex items-center gap-4 uppercase tracking-wide text-xs">
-            <a href="#" className="hover:text-gray-200 transition-colors">
+        {/* Right Side: Portals and Social Links */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          {/* Client and Agent Portals */}
+          <div className="flex items-center gap-4 text-xs uppercase tracking-wide">
+            <span
+              aria-disabled="true"
+              title="Client portal link has not been configured yet"
+              className="cursor-not-allowed text-white/70"
+            >
               Client Portal
-            </a>
-            <a href="#" className="hover:text-gray-200 transition-colors">
+            </span>
+
+            <span
+              aria-disabled="true"
+              title="Agent portal link has not been configured yet"
+              className="cursor-not-allowed text-white/70"
+            >
               Agent Portal
-            </a>
+            </span>
           </div>
 
-          {/* Social Icons */}
+          {/* Social Media */}
           <div className="flex items-center gap-2">
-            {[
-              { Icon: FaFacebookF, href: "#" },
-              { Icon: FaTwitter, href: "#" },
-              { Icon: FaYoutube, href: "#" },
-              { Icon: FaInstagram, href: "#" },
-              { Icon: FaLinkedinIn, href: "#" },
-            ].map(({ Icon, href }, index) => (
-              <a
-                key={index}
-                href={href}
-                className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all duration-200"
-              >
-                <Icon size={12} />
-              </a>
-            ))}
+            {socialLinks.map(({ name, Icon, href }) => {
+              if (!href) {
+                return (
+                  <span
+                    key={name}
+                    aria-label={`${name} link not configured`}
+                    title={`${name} link has not been configured yet`}
+                    className="flex h-7 w-7 cursor-not-allowed items-center justify-center rounded-full bg-white/10 text-white/60"
+                  >
+                    <Icon size={12} aria-hidden="true" />
+                  </span>
+                );
+              }
+
+              return (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Visit our ${name} page`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white transition-all duration-200 hover:bg-white/30"
+                >
+                  <Icon size={12} aria-hidden="true" />
+                </a>
+              );
+            })}
           </div>
         </div>
-
       </div>
     </div>
   );

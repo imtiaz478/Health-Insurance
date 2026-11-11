@@ -14,5 +14,6 @@ export default [
     route("blogs", "./routes/blogs.tsx"),
     route("contact", "./routes/contact.tsx"),
     route("get-quote", "./routes/get-quote.tsx"),
+    route("claim", "./routes/claim.tsx"),
   ]),
 ] satisfies RouteConfig;

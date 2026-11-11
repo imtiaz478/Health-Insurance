@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QuoteStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  REJECTED
+}
+
+enum ClaimStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum InsuranceType {
+  HEALTH
+  MOTOR
+  FIRE
+  MARINE
+  ENGINEERING
+  TRAVEL
+  LIFE
+  OTHER
+}
+
+model Customer {
+  id           String   @id @default(uuid())
+  name         String
+  email        String?
+  phone        String   @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  quotes Quote[]
+  claims Claim[]
+}
+
+model Quote {
+  id            String        @id @default(uuid())
+  customerId    String
+  insuranceType InsuranceType
+  details       String?       @db.Text
+  status        QuoteStatus   @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Claim {
+  id           String      @id @default(uuid())
+  customerId   String
+  policyNumber String?
+  description  String      @db.Text
+  status       ClaimStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

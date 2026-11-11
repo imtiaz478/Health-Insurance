@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
-import { 
-  FaHeart, 
-  FaCar, 
-  FaSuitcase, 
-  FaUsers, 
-  FaShip, 
-  FaHardHat, 
-  FaEllipsisH 
+import { useNavigate } from "react-router";
+import { ArrowUpRight, CheckCircle2 } from "lucide-react";
+import {
+  FaHeart,
+  FaCar,
+  FaSuitcase,
+  FaUsers,
+  FaShip,
+  FaHardHat,
+  FaEllipsisH,
 } from "react-icons/fa";
 
 interface Category {
@@ -27,21 +28,57 @@ const categories: Category[] = [
 ];
 
 const InsuranceForm: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("health");
-  const [name, setName] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [selectedCategory, setSelectedCategory] = useState("health");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({ selectedCategory, name, phone });
+
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
+    if (!trimmedName) {
+      setError("Please enter your full name.");
+      setSuccess(false);
+      return;
+    }
+
+    if (trimmedPhone.length < 7 || trimmedPhone.length > 20) {
+      setError("Please enter a valid phone number.");
+      setSuccess(false);
+      return;
+    }
+
+    setError("");
+    setSuccess(true);
+  };
+
+  const handleGetQuote = () => {
+    const selected = categories.find(
+      (category) => category.id === selectedCategory
+    );
+
+    navigate("/get-quote", {
+      state: {
+        name: name.trim(),
+        phone: phone.trim(),
+        insuranceType: selected?.label ?? "Health",
+      },
+    });
   };
 
   return (
-    <section className="bg-[#FAF3F0] py-10 px-4 sm:px-6 lg:px-8 w-full">
-      <div className="max-w-5xl mx-auto flex flex-col items-center gap-8">
-        
-        {/* Category Icons Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8">
+    <section className="w-full bg-[#FAF3F0] px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-8">
+        <div
+          className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8"
+          aria-label="Choose insurance category"
+        >
           {categories.map((item) => {
             const IconComponent = item.icon;
             const isSelected = selectedCategory === item.id;
@@ -50,12 +87,16 @@ const InsuranceForm: React.FC = () => {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setSelectedCategory(item.id)}
-                className="flex flex-col items-center gap-2 group focus:outline-none"
+                aria-pressed={isSelected}
+                onClick={() => {
+                  setSelectedCategory(item.id);
+                  setSuccess(false);
+                  setError("");
+                }}
+                className="group flex flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A03822] focus-visible:ring-offset-2 rounded-lg"
               >
-                {/* Circle Icon Button */}
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center text-xl transition-all duration-200 ${
+                  className={`flex h-16 w-16 items-center justify-center rounded-full text-xl transition-all duration-200 ${
                     isSelected
                       ? "bg-[#A03822] text-white shadow-md"
                       : "bg-[#F3E5E0] text-[#A03822] hover:bg-[#ebd5ce]"
@@ -64,10 +105,11 @@ const InsuranceForm: React.FC = () => {
                   <IconComponent />
                 </div>
 
-                {/* Category Label */}
                 <span
                   className={`text-sm font-semibold transition-colors ${
-                    isSelected ? "text-[#A03822]" : "text-gray-500 group-hover:text-gray-700"
+                    isSelected
+                      ? "text-[#A03822]"
+                      : "text-gray-500 group-hover:text-gray-700"
                   }`}
                 >
                   {item.label}
@@ -77,51 +119,118 @@ const InsuranceForm: React.FC = () => {
           })}
         </div>
 
-        {/* Input Form Section */}
-        <form 
+        <form
           onSubmit={handleSubmit}
-          className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] items-end gap-4 pt-4"
+          className="grid w-full max-w-4xl grid-cols-1 items-end gap-4 pt-4 md:grid-cols-[1fr_1fr_auto]"
         >
-          {/* Name Field */}
           <div className="flex flex-col gap-2">
-            <label className="text-gray-900 font-bold text-base">
+            <label
+              htmlFor="insurance-name"
+              className="text-base font-bold text-gray-900"
+            >
               Name
             </label>
+
             <input
+              id="insurance-name"
+              name="name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError("");
+                setSuccess(false);
+              }}
               placeholder="Enter Your Full Name"
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#A03822] italic text-sm placeholder:text-gray-400 placeholder:not-italic"
+              autoComplete="name"
+              maxLength={100}
+              className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-sm italic placeholder:not-italic placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#A03822]"
               required
             />
           </div>
 
-          {/* Mobile Number Field */}
           <div className="flex flex-col gap-2">
-            <label className="text-gray-900 font-bold text-base">
+            <label
+              htmlFor="insurance-phone"
+              className="text-base font-bold text-gray-900"
+            >
               Mobile Number
             </label>
+
             <input
+              id="insurance-phone"
+              name="phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                setError("");
+                setSuccess(false);
+              }}
               placeholder="Enter Your Valid Phone Number"
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#A03822] italic text-sm placeholder:text-gray-400 placeholder:not-italic"
+              autoComplete="tel"
+              maxLength={20}
+              className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-sm italic placeholder:not-italic placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#A03822]"
               required
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full md:w-auto bg-[#A03822] hover:bg-[#852e1b] text-white font-semibold text-sm px-6 py-3.5 rounded-md flex items-center justify-center gap-2 transition-all shadow-sm"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-[#A03822] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#852e1b] md:w-auto"
           >
-            <span>Get Price</span>
+            <span>Check Details</span>
             <ArrowUpRight size={18} />
           </button>
         </form>
 
+        {error && (
+          <p
+            role="alert"
+            className="w-full max-w-4xl rounded-lg bg-red-50 p-3 text-sm text-red-700"
+          >
+            {error}
+          </p>
+        )}
+
+        {success && (
+          <div className="w-full max-w-4xl rounded-xl border border-green-200 bg-green-50 p-5">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-1 shrink-0 text-green-700" />
+
+              <div>
+                <h3 className="font-bold text-green-800">
+                  Details validated successfully!
+                </h3>
+
+                <p className="mt-2 text-sm text-green-800">
+                  Name: {name.trim()}
+                </p>
+
+                <p className="mt-1 text-sm text-green-800">
+                  Insurance:{" "}
+                  {categories.find(
+                    (category) => category.id === selectedCategory
+                  )?.label}
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-green-800">
+                  Continue to the quote page to provide more details. Your
+                  information has not been sent to a server.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleGetQuote}
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#A03822] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#852e1b]"
+                >
+                  Get a Quote
+                  <ArrowUpRight size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

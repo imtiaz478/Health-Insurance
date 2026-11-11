@@ -1,70 +1,178 @@
-"use client";
-
 import React, { useState } from "react";
-import { Link } from "react-router"; // Next.js হলে 'next/link' ব্যবহার করবে
-import { ChevronDown, ArrowUpRight, Menu, X } from "lucide-react";
+import { Link, NavLink } from "react-router";
+import {
+  ChevronDown,
+  ArrowUpRight,
+  Menu,
+  X,
+} from "lucide-react";
 
-const Navbar = () => {
+const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
+  const [isClaimsOpen, setIsClaimsOpen] = useState(false);
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    setIsServicesOpen(false);
+    setIsClaimsOpen(false);
+  };
+
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `transition-colors duration-200 ${
+      isActive
+        ? "font-semibold text-[#A03822]"
+        : "text-gray-800 hover:text-[#A03822]"
+    }`;
 
   return (
-    <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          
-          {/* Logo Section */}
-          <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-            {/* Custom Logo Icon */}
-            <div className="w-10 h-10 border-2 border-[#A03822] flex items-center justify-center relative p-1">
-              <div className="w-full h-full bg-[#A03822] rounded-tl-full rounded-tr-full rounded-br-full" />
+    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between">
+
+          {/* Logo */}
+          <Link
+            to="/"
+            onClick={closeMobileMenu}
+            className="flex shrink-0 items-center gap-3"
+            aria-label="Purabi General Insurance Home"
+          >
+            <div className="relative flex h-10 w-10 items-center justify-center border-2 border-[#A03822] p-1">
+              <div className="h-full w-full rounded-tl-full rounded-tr-full rounded-br-full bg-[#A03822]" />
             </div>
-            {/* Logo Text */}
+
             <div className="flex flex-col leading-none">
-              <span className="text-[#A03822] font-extrabold text-lg tracking-wide uppercase">
+              <span className="text-lg font-extrabold uppercase tracking-wide text-[#A03822]">
                 Purabi General
               </span>
-              <span className="text-[#A03822] font-semibold text-xs tracking-wider uppercase">
+
+              <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-[#A03822]">
                 Insurance Co. Ltd.
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Menu */}
-          <div className="hidden md:flex items-center space-x-8 text-gray-800 font-medium">
-            <Link to="/" className="hover:text-[#A03822] transition-colors">
+          {/* Desktop Navigation */}
+          <div className="hidden items-center space-x-7 font-medium md:flex">
+
+            <NavLink to="/" end className={navLinkClass}>
               Home
-            </Link>
-            
-            {/* About Us Link */}
-            <Link to="/about" className="hover:text-[#A03822] transition-colors">
+            </NavLink>
+
+            <NavLink to="/about" className={navLinkClass}>
               About Us
-            </Link>
-            
+            </NavLink>
+
             {/* Services Dropdown */}
-            <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#A03822] transition-colors">
-              <span>Services</span>
-              <ChevronDown size={18} />
+            <div className="group relative">
+              <button
+                type="button"
+                aria-expanded={isServicesOpen}
+                onClick={() => {
+                  setIsServicesOpen(!isServicesOpen);
+                  setIsClaimsOpen(false);
+                }}
+                className="flex items-center gap-1 text-gray-800 transition-colors hover:text-[#A03822]"
+              >
+                Services
+
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform ${
+                    isServicesOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <div
+                className={`absolute left-0 top-full z-50 mt-3 w-56 rounded-lg border border-gray-100 bg-white py-2 shadow-xl ${
+                  isServicesOpen || "hidden group-hover:block"
+                }`}
+              >
+                <Link
+                  to="/health-insurance"
+                  onClick={() => setIsServicesOpen(false)}
+                  className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-[#FAF3F0] hover:text-[#A03822]"
+                >
+                  Health Insurance
+                </Link>
+
+                <Link
+                  to="/about"
+                  onClick={() => setIsServicesOpen(false)}
+                  className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-[#FAF3F0] hover:text-[#A03822]"
+                >
+                  Other Insurance Services
+                </Link>
+
+                <Link
+                  to="/get-quote"
+                  onClick={() => setIsServicesOpen(false)}
+                  className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-[#FAF3F0] hover:text-[#A03822]"
+                >
+                  Request a Quote
+                </Link>
+              </div>
             </div>
 
             {/* Claims Dropdown */}
-            <div className="relative group cursor-pointer flex items-center gap-1 hover:text-[#A03822] transition-colors">
-              <span>Claims</span>
-              <ChevronDown size={18} />
+            <div className="group relative">
+              <button
+                type="button"
+                aria-expanded={isClaimsOpen}
+                onClick={() => {
+                  setIsClaimsOpen(!isClaimsOpen);
+                  setIsServicesOpen(false);
+                }}
+                className="flex items-center gap-1 text-gray-800 transition-colors hover:text-[#A03822]"
+              >
+                Claims
+
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform ${
+                    isClaimsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <div
+                className={`absolute left-0 top-full z-50 mt-3 w-52 rounded-lg border border-gray-100 bg-white py-2 shadow-xl ${
+                  isClaimsOpen || "hidden group-hover:block"
+                }`}
+              >
+                <Link
+                  to="/contact"
+                  onClick={() => setIsClaimsOpen(false)}
+                  className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-[#FAF3F0] hover:text-[#A03822]"
+                >
+                  Claim Assistance
+                </Link>
+
+                <Link
+                  to="/contact"
+                  onClick={() => setIsClaimsOpen(false)}
+                  className="block px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-[#FAF3F0] hover:text-[#A03822]"
+                >
+                  Contact for Claims
+                </Link>
+              </div>
             </div>
 
-            <Link to="/blogs" className="hover:text-[#A03822] transition-colors">
+            <NavLink to="/blogs" className={navLinkClass}>
               Blogs
-            </Link>
-            <Link to="/contact" className="hover:text-[#A03822] transition-colors">
+            </NavLink>
+
+            <NavLink to="/contact" className={navLinkClass}>
               Contact Us
-            </Link>
+            </NavLink>
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:flex items-center">
+          {/* Desktop CTA */}
+          <div className="hidden items-center md:flex">
             <Link
               to="/get-quote"
-              className="bg-[#A03822] hover:bg-[#852e1b] text-white px-6 py-3 rounded-md font-semibold text-sm flex items-center gap-2 transition-all shadow-sm"
+              className="flex items-center gap-2 rounded-md bg-[#A03822] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#852e1b]"
             >
               <span>Get A Quote</span>
               <ArrowUpRight size={18} />
@@ -72,64 +180,146 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-700 hover:text-[#A03822] focus:outline-none"
-            >
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
-          </div>
-
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            className="rounded-md p-2 text-gray-700 transition-colors hover:text-[#A03822] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A03822] md:hidden"
+          >
+            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-4 pb-6 space-y-4">
-          <Link 
-            to="/" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-gray-800 font-medium hover:text-[#A03822]"
+        <div className="space-y-4 border-t border-gray-100 bg-white px-4 pb-6 pt-4 shadow-lg md:hidden">
+
+          <NavLink
+            to="/"
+            end
+            onClick={closeMobileMenu}
+            className={navLinkClass}
           >
             Home
-          </Link>
-          
-          {/* Mobile About Us Link */}
-          <Link 
-            to="/about" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-gray-800 font-medium hover:text-[#A03822]"
+          </NavLink>
+
+          <NavLink
+            to="/about"
+            onClick={closeMobileMenu}
+            className={`block ${navLinkClass({ isActive: false })}`}
           >
             About Us
-          </Link>
-          
-          <div className="flex items-center justify-between text-gray-800 font-medium hover:text-[#A03822]">
-            <span>Services</span>
-            <ChevronDown size={18} />
+          </NavLink>
+
+          {/* Mobile Services Dropdown */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setIsServicesOpen(!isServicesOpen)}
+              aria-expanded={isServicesOpen}
+              className="flex w-full items-center justify-between font-medium text-gray-800 hover:text-[#A03822]"
+            >
+              Services
+
+              <ChevronDown
+                size={18}
+                className={`transition-transform ${
+                  isServicesOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {isServicesOpen && (
+              <div className="mt-3 space-y-3 border-l-2 border-[#A03822] pl-4">
+                <Link
+                  to="/health-insurance"
+                  onClick={closeMobileMenu}
+                  className="block text-sm text-gray-600 hover:text-[#A03822]"
+                >
+                  Health Insurance
+                </Link>
+
+                <Link
+                  to="/about"
+                  onClick={closeMobileMenu}
+                  className="block text-sm text-gray-600 hover:text-[#A03822]"
+                >
+                  Other Insurance Services
+                </Link>
+
+                <Link
+                  to="/get-quote"
+                  onClick={closeMobileMenu}
+                  className="block text-sm text-gray-600 hover:text-[#A03822]"
+                >
+                  Request a Quote
+                </Link>
+              </div>
+            )}
           </div>
-          <div className="flex items-center justify-between text-gray-800 font-medium hover:text-[#A03822]">
-            <span>Claims</span>
-            <ChevronDown size={18} />
+
+          {/* Mobile Claims Dropdown */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setIsClaimsOpen(!isClaimsOpen)}
+              aria-expanded={isClaimsOpen}
+              className="flex w-full items-center justify-between font-medium text-gray-800 hover:text-[#A03822]"
+            >
+              Claims
+
+              <ChevronDown
+                size={18}
+                className={`transition-transform ${
+                  isClaimsOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {isClaimsOpen && (
+              <div className="mt-3 space-y-3 border-l-2 border-[#A03822] pl-4">
+                <Link
+                  to="/contact"
+                  onClick={closeMobileMenu}
+                  className="block text-sm text-gray-600 hover:text-[#A03822]"
+                >
+                  Claim Assistance
+                </Link>
+
+                <Link
+                  to="/contact"
+                  onClick={closeMobileMenu}
+                  className="block text-sm text-gray-600 hover:text-[#A03822]"
+                >
+                  Contact for Claims
+                </Link>
+              </div>
+            )}
           </div>
-          <Link 
-            to="/blogs" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-gray-800 font-medium hover:text-[#A03822]"
+
+          <NavLink
+            to="/blogs"
+            onClick={closeMobileMenu}
+            className={navLinkClass}
           >
             Blogs
-          </Link>
-          <Link 
-            to="/contact" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block text-gray-800 font-medium hover:text-[#A03822]"
+          </NavLink>
+
+          <NavLink
+            to="/contact"
+            onClick={closeMobileMenu}
+            className={navLinkClass}
           >
             Contact Us
-          </Link>
+          </NavLink>
+
+          {/* Mobile CTA */}
           <Link
             to="/get-quote"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="w-full bg-[#A03822] text-white py-3 rounded-md font-semibold text-sm flex items-center justify-center gap-2"
+            onClick={closeMobileMenu}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-[#A03822] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#852e1b]"
           >
             <span>Get A Quote</span>
             <ArrowUpRight size={18} />
