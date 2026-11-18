@@ -245,3 +245,75 @@ export const getCustomerProfile = async (
     });
   }
 };
+
+
+export const updateCustomerProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.customerId) {
+      return res.status(401).json({
+        success: false,
+        message: "Customer authentication required.",
+      });
+    }
+
+    const updateSchema = z.object({
+      name: z
+        .string()
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(100, "Name is too long"),
+
+      email: z
+        .string()
+        .trim()
+        .email("Please provide a valid email")
+        .optional()
+        .or(z.literal("")),
+    });
+
+    const validation = updateSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid profile data",
+        errors: validation.error.flatten().fieldErrors,
+      });
+    }
+
+    const { name, email } = validation.data;
+
+    const customer = await prisma.customer.update({
+      where: {
+        id: req.customerId,
+      },
+      data: {
+        name,
+        email: email || null,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully!",
+      data: customer,
+    });
+  } catch (error) {
+    console.error("Update customer profile error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};

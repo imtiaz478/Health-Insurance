@@ -3,6 +3,7 @@ import {
   registerCustomer,
   loginCustomer,
   getCustomerProfile,
+  updateCustomerProfile,
 } from "../controllers/customerAuth.controller.js";
 import { customerAuth } from "../middleware/customerAuth.middleware.js";
 
@@ -12,5 +13,7 @@ router.post("/register", registerCustomer);
 router.post("/login", loginCustomer);
 
 router.get("/profile", customerAuth, getCustomerProfile);
+
+router.put("/profile", customerAuth, updateCustomerProfile);
 
 export default router;

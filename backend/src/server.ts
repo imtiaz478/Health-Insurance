@@ -8,6 +8,11 @@ import contactRoutes from "./routes/contact.routes.js";
 import quoteRoutes from "./routes/quote.routes.js";
 import claimRoutes from "./routes/claim.routes.js";
 import customerAuthRoutes from "./routes/customerAuth.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+
+import premiumRoutes from "./routes/premium.routes.js";
+
+import policyApplicationRoutes from "./routes/policyApplication.routes.js";
 
 const app = express();
 
@@ -32,6 +37,12 @@ app.use("/api/quotes", quoteRoutes);
 app.use("/api/claims", claimRoutes);
 
 app.use("/api/auth", customerAuthRoutes);
+
+app.use("/api/premium", premiumRoutes);
+
+app.use("/api/policy-applications", policyApplicationRoutes);
+
+app.use("/api/admin", adminRoutes);
 
 // Welcome route
 app.get("/", (req, res) => {

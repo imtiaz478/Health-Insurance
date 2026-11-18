@@ -168,8 +168,23 @@ const Navbar: React.FC = () => {
             </NavLink>
           </div>
 
-          {/* Desktop CTA */}
-          <div className="hidden items-center md:flex">
+          {/* Desktop Auth + CTA */}
+          <div className="hidden items-center gap-3 md:flex">
+
+            <Link
+              to="/login"
+              className="rounded-md px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-[#FAF3F0] hover:text-[#A03822]"
+            >
+              Login
+            </Link>
+
+            <Link
+              to="/register"
+              className="rounded-md border border-[#A03822] px-4 py-2.5 text-sm font-semibold text-[#A03822] transition-colors hover:bg-[#A03822] hover:text-white"
+            >
+              Sign Up
+            </Link>
+
             <Link
               to="/get-quote"
               className="flex items-center gap-2 rounded-md bg-[#A03822] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#852e1b]"
@@ -177,6 +192,7 @@ const Navbar: React.FC = () => {
               <span>Get A Quote</span>
               <ArrowUpRight size={18} />
             </Link>
+
           </div>
 
           {/* Mobile Menu Button */}
@@ -315,6 +331,27 @@ const Navbar: React.FC = () => {
             Contact Us
           </NavLink>
 
+          {/* Mobile Auth */}
+          <div className="flex gap-3 pt-2">
+
+            <Link
+              to="/login"
+              onClick={closeMobileMenu}
+              className="flex flex-1 items-center justify-center rounded-md border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:border-[#A03822] hover:text-[#A03822]"
+            >
+              Login
+            </Link>
+
+            <Link
+              to="/register"
+              onClick={closeMobileMenu}
+              className="flex flex-1 items-center justify-center rounded-md border border-[#A03822] py-3 text-sm font-semibold text-[#A03822] hover:bg-[#A03822] hover:text-white"
+            >
+              Sign Up
+            </Link>
+
+          </div>
+
           {/* Mobile CTA */}
           <Link
             to="/get-quote"
@@ -324,6 +361,7 @@ const Navbar: React.FC = () => {
             <span>Get A Quote</span>
             <ArrowUpRight size={18} />
           </Link>
+
         </div>
       )}
     </nav>

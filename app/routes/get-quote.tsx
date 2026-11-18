@@ -2,7 +2,7 @@
 import type { Route } from "./+types/get-quote";
 import { useState, type FormEvent } from "react";
 import { useLocation } from "react-router";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Calculator } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -19,13 +19,15 @@ interface QuoteLocationState {
   name?: string;
   phone?: string;
   insuranceType?: string;
+  coverageAmount?: number;
+  estimatedPremium?: number;
 }
 
 const insuranceTypeMap: Record<string, string> = {
   Health: "Health Insurance",
   Car: "Motor Insurance",
   Travel: "Other",
-  Life: "Other",
+  Life: "Life Insurance",
   Marine: "Marine Insurance",
   Engineering: "Engineering Insurance",
   More: "Other",
@@ -37,8 +39,17 @@ const backendInsuranceType: Record<string, string> = {
   "Fire Insurance": "FIRE",
   "Marine Insurance": "MARINE",
   "Engineering Insurance": "ENGINEERING",
+  "Travel Insurance": "TRAVEL",
+  "Life Insurance": "LIFE",
   Other: "OTHER",
 };
+
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency: "BDT",
+    maximumFractionDigits: 2,
+  }).format(amount);
 
 export default function GetQuote() {
   const location = useLocation();
@@ -55,8 +66,12 @@ export default function GetQuote() {
   const [insuranceType, setInsuranceType] = useState(initialInsuranceType);
   const [details, setDetails] = useState("");
 
+  const [coverageAmount] = useState(locationState.coverageAmount ?? null);
+  const [estimatedPremium] = useState(locationState.estimatedPremium ?? null);
+
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -91,6 +106,21 @@ export default function GetQuote() {
       return;
     }
 
+    const finalDetails = [
+      trimmedDetails,
+      coverageAmount
+        ? `Coverage Amount: ${formatCurrency(coverageAmount)}`
+        : "",
+      estimatedPremium
+        ? `Estimated Premium (Demo): ${formatCurrency(estimatedPremium)}`
+        : "",
+      estimatedPremium
+        ? "Note: This is a demo estimate, not an official quotation."
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
     setIsSubmitting(true);
     setError("");
     setSubmitted(false);
@@ -106,7 +136,7 @@ export default function GetQuote() {
           email: trimmedEmail,
           phone: trimmedPhone,
           insuranceType: selectedType,
-          details: trimmedDetails,
+          details: finalDetails,
         }),
       });
 
@@ -137,11 +167,8 @@ export default function GetQuote() {
     }
   }
 
-  const [message, setMessage] = useState("");
-
   return (
     <main className="min-h-screen bg-white">
-      {/* Page Header */}
       <section className="bg-[#FAF3F0] px-4 py-16 text-center sm:py-20">
         <p className="text-sm font-semibold uppercase tracking-widest text-[#A03822]">
           Insurance Made Simple
@@ -157,9 +184,7 @@ export default function GetQuote() {
         </p>
       </section>
 
-      {/* Main Content */}
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-2 md:px-6">
-        {/* Left Information Section */}
         <div className="flex flex-col justify-center">
           <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Find the Right Coverage for You
@@ -186,9 +211,35 @@ export default function GetQuote() {
               </div>
             ))}
           </div>
+
+          {coverageAmount !== null && estimatedPremium !== null && (
+            <div className="mt-8 rounded-xl border border-orange-200 bg-[#FAF3F0] p-5">
+              <div className="flex items-center gap-2 font-bold text-[#A03822]">
+                <Calculator size={20} />
+                Your Premium Estimate
+              </div>
+
+              <div className="mt-4 space-y-3 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="text-gray-600">Coverage Amount</span>
+                  <strong>{formatCurrency(coverageAmount)}</strong>
+                </div>
+
+                <div className="flex justify-between gap-3">
+                  <span className="text-gray-600">Estimated Premium</span>
+                  <strong className="text-[#A03822]">
+                    {formatCurrency(estimatedPremium)}
+                  </strong>
+                </div>
+              </div>
+
+              <p className="mt-4 text-xs leading-5 text-gray-600">
+                This is a demo estimate only, not an official insurance quotation.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Quote Form */}
         <form
           onSubmit={handleSubmit}
           className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
@@ -219,14 +270,12 @@ export default function GetQuote() {
             </p>
           )}
 
-          {/* Full Name */}
           <div>
             <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
               Full Name *
             </label>
             <input
               id="name"
-              name="name"
               type="text"
               required
               maxLength={100}
@@ -242,14 +291,12 @@ export default function GetQuote() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
               Email Address *
             </label>
             <input
               id="email"
-              name="email"
               type="email"
               required
               maxLength={254}
@@ -265,14 +312,12 @@ export default function GetQuote() {
             />
           </div>
 
-          {/* Phone */}
           <div>
             <label htmlFor="phone" className="mb-2 block text-sm font-medium text-gray-700">
               Phone Number *
             </label>
             <input
               id="phone"
-              name="phone"
               type="tel"
               required
               maxLength={20}
@@ -288,14 +333,12 @@ export default function GetQuote() {
             />
           </div>
 
-          {/* Insurance Type */}
           <div>
             <label htmlFor="insuranceType" className="mb-2 block text-sm font-medium text-gray-700">
               Insurance Type *
             </label>
             <select
               id="insuranceType"
-              name="insuranceType"
               required
               value={insuranceType}
               onChange={(event) => {
@@ -313,18 +356,18 @@ export default function GetQuote() {
               <option value="Fire Insurance">Fire Insurance</option>
               <option value="Marine Insurance">Marine Insurance</option>
               <option value="Engineering Insurance">Engineering Insurance</option>
+              <option value="Travel Insurance">Travel Insurance</option>
+              <option value="Life Insurance">Life Insurance</option>
               <option value="Other">Other</option>
             </select>
           </div>
 
-          {/* Additional Details */}
           <div>
             <label htmlFor="details" className="mb-2 block text-sm font-medium text-gray-700">
               Additional Details
             </label>
             <textarea
               id="details"
-              name="details"
               rows={4}
               maxLength={2000}
               value={details}
@@ -337,7 +380,6 @@ export default function GetQuote() {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting}
