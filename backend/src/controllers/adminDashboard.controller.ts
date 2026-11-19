@@ -1,8 +1,10 @@
+
 import type { Response } from "express";
 import prisma from "../config/database.js";
 import type { AuthenticatedAdminRequest } from "../middleware/adminAuth.middleware.js";
 import { z } from "zod";
 
+// Dashboard Overview
 export const getDashboardOverview = async (
   req: AuthenticatedAdminRequest,
   res: Response
@@ -22,23 +24,9 @@ export const getDashboardOverview = async (
       prisma.claim.count(),
       prisma.policyApplication.count(),
 
-      prisma.quote.count({
-        where: {
-          status: "PENDING",
-        },
-      }),
-
-      prisma.claim.count({
-        where: {
-          status: "PENDING",
-        },
-      }),
-
-      prisma.policyApplication.count({
-        where: {
-          status: "PENDING",
-        },
-      }),
+      prisma.quote.count({ where: { status: "PENDING" } }),
+      prisma.claim.count({ where: { status: "PENDING" } }),
+      prisma.policyApplication.count({ where: { status: "PENDING" } }),
     ]);
 
     return res.status(200).json({
@@ -63,6 +51,7 @@ export const getDashboardOverview = async (
   }
 };
 
+// Get All Customers
 export const getAllCustomers = async (
   req: AuthenticatedAdminRequest,
   res: Response
@@ -75,7 +64,6 @@ export const getAllCustomers = async (
         email: true,
         phone: true,
         createdAt: true,
-
         _count: {
           select: {
             quotes: true,
@@ -84,7 +72,6 @@ export const getAllCustomers = async (
           },
         },
       },
-
       orderBy: {
         createdAt: "desc",
       },
@@ -105,6 +92,7 @@ export const getAllCustomers = async (
   }
 };
 
+// Get All Quotes
 export const getAllQuotes = async (
   req: AuthenticatedAdminRequest,
   res: Response
@@ -121,7 +109,6 @@ export const getAllQuotes = async (
           },
         },
       },
-
       orderBy: {
         createdAt: "desc",
       },
@@ -142,6 +129,7 @@ export const getAllQuotes = async (
   }
 };
 
+// Update Quote Status
 export const updateQuoteStatus = async (
   req: AuthenticatedAdminRequest,
   res: Response
@@ -158,8 +146,6 @@ export const updateQuoteStatus = async (
       ]),
     });
 
-    console.log("QUOTE STATUS BODY:", req.body);
-
     const result = schema.safeParse(req.body);
 
     if (!result.success) {
@@ -170,9 +156,7 @@ export const updateQuoteStatus = async (
     }
 
     const existingQuote = await prisma.quote.findUnique({
-      where: {
-        id: quoteId,
-      },
+      where: { id: quoteId },
     });
 
     if (!existingQuote) {
@@ -183,13 +167,8 @@ export const updateQuoteStatus = async (
     }
 
     const updatedQuote = await prisma.quote.update({
-      where: {
-        id: quoteId,
-      },
-
-      data: {
-        status: result.data.status,
-      },
+      where: { id: quoteId },
+      data: { status: result.data.status },
     });
 
     return res.status(200).json({
@@ -203,6 +182,199 @@ export const updateQuoteStatus = async (
     return res.status(500).json({
       success: false,
       message: "Failed to update quote status.",
+    });
+  }
+};
+
+// Get All Claims
+export const getAllClaims = async (
+  req: AuthenticatedAdminRequest,
+  res: Response
+) => {
+  try {
+    const claims = await prisma.claim.findMany({
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: claims.length,
+      data: claims,
+    });
+  } catch (error) {
+    console.error("Get claims error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch claims.",
+    });
+  }
+};
+
+// Update Claim Status
+export const updateClaimStatus = async (
+  req: AuthenticatedAdminRequest,
+  res: Response
+) => {
+  try {
+    const claimId = String(req.params.id);
+
+    const schema = z.object({
+      status: z.enum([
+        "PENDING",
+        "UNDER_REVIEW",
+        "APPROVED",
+        "REJECTED",
+        "COMPLETED",
+      ]),
+    });
+
+    const result = schema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid claim status.",
+      });
+    }
+
+    const existingClaim = await prisma.claim.findUnique({
+      where: { id: claimId },
+    });
+
+    if (!existingClaim) {
+      return res.status(404).json({
+        success: false,
+        message: "Claim not found.",
+      });
+    }
+
+    const updatedClaim = await prisma.claim.update({
+      where: { id: claimId },
+      data: { status: result.data.status },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Claim status updated successfully.",
+      data: updatedClaim,
+    });
+  } catch (error) {
+    console.error("Update claim status error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Can not update claim status.",
+    });
+  }
+};
+
+
+
+// Get All Policy Applications
+export const getAllPolicyApplications = async (
+  req: AuthenticatedAdminRequest,
+  res: Response
+) => {
+  try {
+    const applications = await prisma.policyApplication.findMany({
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    console.error("Get policy applications error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch policy applications.",
+    });
+  }
+};
+
+// Update Policy Application Status
+export const updatePolicyApplicationStatus = async (
+  req: AuthenticatedAdminRequest,
+  res: Response
+) => {
+  try {
+    const applicationId = String(req.params.id);
+
+    const schema = z.object({
+      status: z.enum([
+        "PENDING",
+        "UNDER_REVIEW",
+        "APPROVED",
+        "REJECTED",
+      ]),
+    });
+
+    const result = schema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid policy application status.",
+      });
+    }
+
+    const existingApplication =
+      await prisma.policyApplication.findUnique({
+        where: { id: applicationId },
+      });
+
+    if (!existingApplication) {
+      return res.status(404).json({
+        success: false,
+        message: "Policy application not found.",
+      });
+    }
+
+    const updatedApplication =
+      await prisma.policyApplication.update({
+        where: { id: applicationId },
+        data: { status: result.data.status },
+      });
+
+    return res.status(200).json({
+      success: true,
+      message: "Policy application status updated successfully.",
+      data: updatedApplication,
+    });
+  } catch (error) {
+    console.error("Update policy application status error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update policy application status.",
     });
   }
 };
