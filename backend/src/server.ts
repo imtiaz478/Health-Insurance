@@ -14,6 +14,10 @@ import premiumRoutes from "./routes/premium.routes.js";
 
 import policyApplicationRoutes from "./routes/policyApplication.routes.js";
 
+import policyRoutes from "./routes/policy.routes.js";
+
+import paymentRoutes from "./routes/payment.routes.js";
+
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -43,6 +47,10 @@ app.use("/api/premium", premiumRoutes);
 app.use("/api/policy-applications", policyApplicationRoutes);
 
 app.use("/api/admin", adminRoutes);
+
+app.use("/api/policies", policyRoutes);
+
+app.use("/api/payments", paymentRoutes);
 
 // Welcome route
 app.get("/", (req, res) => {

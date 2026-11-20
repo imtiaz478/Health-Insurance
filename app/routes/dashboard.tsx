@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { Route } from "./+types/dashboard";
 import { Link, useNavigate } from "react-router";
 import {
@@ -58,6 +58,21 @@ interface PolicyApplication {
   createdAt: string;
 }
 
+interface Payment {
+  id: string;
+  amount: number | string;
+  paymentMethod: "BKASH" | "NAGAD" | "CARD";
+  status: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+  transactionId: string | null;
+  createdAt: string;
+  policy: {
+    policyNumber: string;
+    insuranceType: string;
+  };
+}
+
+const API_BASE_URL = "http://localhost:5000/api";
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
@@ -74,7 +89,16 @@ export default function Dashboard() {
   const [claimError, setClaimError] = useState("");
 
   // Policy Applications
-  const [policyApplications, setPolicyApplications] = useState<PolicyApplication[]>([]);
+  const [policyApplications, setPolicyApplications] = useState<
+    PolicyApplication[]
+  >([]);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(true);
+  const [applicationError, setApplicationError] = useState("");
+
+  // Payments
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [paymentLoading, setPaymentLoading] = useState(true);
+  const [paymentError, setPaymentError] = useState("");
 
   // Profile
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -83,6 +107,12 @@ export default function Dashboard() {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
+
+  function redirectToLogin() {
+    localStorage.removeItem("customerToken");
+    localStorage.removeItem("customer");
+    navigate("/login");
+  }
 
   useEffect(() => {
     const token = localStorage.getItem("customerToken");
@@ -94,19 +124,18 @@ export default function Dashboard() {
     }
 
     try {
-      const parsedCustomer = JSON.parse(storedCustomer);
+      const parsedCustomer: Customer = JSON.parse(storedCustomer);
 
       setCustomer(parsedCustomer);
       setProfileName(parsedCustomer.name);
       setProfileEmail(parsedCustomer.email || "");
 
-      fetchMyQuotes(token);
-      fetchMyClaims(token);
-      fetchPolicyApplications(token);
+      void fetchMyQuotes(token);
+      void fetchMyClaims(token);
+      void fetchPolicyApplications(token);
+      void fetchPayments(token);
     } catch {
-      localStorage.removeItem("customerToken");
-      localStorage.removeItem("customer");
-      navigate("/login");
+      redirectToLogin();
     }
   }, [navigate]);
 
@@ -119,30 +148,25 @@ export default function Dashboard() {
       setIsLoadingQuotes(true);
       setQuoteError("");
 
-      const response = await fetch(
-        "http://localhost:5000/api/quotes/my-quotes",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
+      const response = await fetch(`${API_BASE_URL}/quotes/my-quotes`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.status === 401) {
-        localStorage.removeItem("customerToken");
-        localStorage.removeItem("customer");
-        navigate("/login");
+        redirectToLogin();
         return;
       }
+
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to load your quotes.");
       }
 
-      setQuotes(data.data);
+      setQuotes(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       console.error("Get quotes error:", error);
       setQuoteError(
@@ -158,30 +182,25 @@ export default function Dashboard() {
       setIsLoadingClaims(true);
       setClaimError("");
 
-      const response = await fetch(
-        "http://localhost:5000/api/claims/my-claims",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
+      const response = await fetch(`${API_BASE_URL}/claims/my-claims`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.status === 401) {
-        localStorage.removeItem("customerToken");
-        localStorage.removeItem("customer");
-        navigate("/login");
+        redirectToLogin();
         return;
       }
+
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to load your claims.");
       }
 
-      setClaims(data.data);
+      setClaims(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       console.error("Get claims error:", error);
       setClaimError(
@@ -192,10 +211,13 @@ export default function Dashboard() {
     }
   }
 
-  const fetchPolicyApplications = async (token: string) => {
+  async function fetchPolicyApplications(token: string) {
     try {
+      setIsLoadingApplications(true);
+      setApplicationError("");
+
       const response = await fetch(
-        "http://localhost:5000/api/policy-applications/my-applications",
+        `${API_BASE_URL}/policy-applications/my-applications`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -203,21 +225,74 @@ export default function Dashboard() {
         }
       );
 
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        setPolicyApplications(data.data);
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to load your policy applications."
+        );
       }
+
+      setPolicyApplications(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       console.error("Policy applications fetch error:", error);
+      setApplicationError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load your policy applications."
+      );
+    } finally {
+      setIsLoadingApplications(false);
     }
-  };
+  }
+
+  async function fetchPayments(token: string) {
+    try {
+      setPaymentLoading(true);
+      setPaymentError("");
+
+      const response = await fetch(`${API_BASE_URL}/payments/my-payments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to load your payment history.");
+      }
+
+      setPayments(Array.isArray(data.payments) ? data.payments : []);
+    } catch (error) {
+      console.error("Failed to fetch payments:", error);
+      setPaymentError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load your payment history."
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  }
 
   // =========================
   // UPDATE PROFILE
   // =========================
 
-  async function updateProfile() {
+  async function updateProfile(e: FormEvent) {
+    e.preventDefault();
+
     try {
       const token = localStorage.getItem("customerToken");
 
@@ -226,33 +301,33 @@ export default function Dashboard() {
         return;
       }
 
+      if (!profileName.trim()) {
+        setProfileError("Full name is required.");
+        return;
+      }
+
       setIsUpdatingProfile(true);
       setProfileMessage("");
       setProfileError("");
 
-      const response = await fetch(
-        "http://localhost:5000/api/auth/profile",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: profileName,
-            email: profileEmail,
-          }),
-        }
-      );
-
-      const data = await response.json();
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: profileName.trim(),
+          email: profileEmail.trim() || null,
+        }),
+      });
 
       if (response.status === 401) {
-        localStorage.removeItem("customerToken");
-        localStorage.removeItem("customer");
-        navigate("/login");
+        redirectToLogin();
         return;
       }
+
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to update profile.");
@@ -278,9 +353,7 @@ export default function Dashboard() {
   // =========================
 
   function handleLogout() {
-    localStorage.removeItem("customerToken");
-    localStorage.removeItem("customer");
-    navigate("/login");
+    redirectToLogin();
   }
 
   // =========================
@@ -306,17 +379,20 @@ export default function Dashboard() {
     switch (status) {
       case "APPROVED":
       case "COMPLETED":
+      case "SUCCESS":
         return {
           className: "bg-green-100 text-green-700 border-green-200",
           icon: <CheckCircle2 size={15} />,
         };
       case "REJECTED":
+      case "FAILED":
         return {
           className: "bg-red-100 text-red-700 border-red-200",
           icon: <XCircle size={15} />,
         };
       case "PROCESSING":
       case "UNDER_REVIEW":
+      case "REFUNDED":
         return {
           className: "bg-blue-100 text-blue-700 border-blue-200",
           icon: <Clock3 size={15} />,
@@ -363,6 +439,7 @@ export default function Dashboard() {
           </div>
 
           <button
+            type="button"
             onClick={handleLogout}
             className="flex items-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
           >
@@ -394,6 +471,7 @@ export default function Dashboard() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setProfileName(customer.name);
                     setProfileEmail(customer.email || "");
@@ -434,16 +512,19 @@ export default function Dashboard() {
               </div>
             </>
           ) : (
-            <>
+            <form onSubmit={updateProfile}>
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Edit Profile
+                  </h2>
                   <p className="mt-1 text-sm text-gray-500">
                     Update your customer information.
                   </p>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setIsEditingProfile(false);
                     setProfileError("");
@@ -506,7 +587,7 @@ export default function Dashboard() {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
-                  onClick={updateProfile}
+                  type="submit"
                   disabled={isUpdatingProfile}
                   className="flex items-center gap-2 rounded-lg bg-[#A03822] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#852e1b] disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -515,6 +596,7 @@ export default function Dashboard() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setIsEditingProfile(false);
                     setProfileError("");
@@ -526,7 +608,7 @@ export default function Dashboard() {
                   Cancel
                 </button>
               </div>
-            </>
+            </form>
           )}
         </div>
 
@@ -539,13 +621,18 @@ export default function Dashboard() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAF3F0]">
               <FileText className="text-[#A03822]" size={24} />
             </div>
-            <h3 className="mt-5 text-lg font-bold text-gray-900">Get a Quote</h3>
+            <h3 className="mt-5 text-lg font-bold text-gray-900">
+              Get a Quote
+            </h3>
             <p className="mt-2 text-sm leading-6 text-gray-600">
               Request a new insurance quote for your needs.
             </p>
             <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#A03822]">
               Request Quote
-              <ArrowRight size={16} className="transition group-hover:translate-x-1" />
+              <ArrowRight
+                size={16}
+                className="transition group-hover:translate-x-1"
+              />
             </div>
           </Link>
 
@@ -556,13 +643,18 @@ export default function Dashboard() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAF3F0]">
               <ShieldCheck className="text-[#A03822]" size={24} />
             </div>
-            <h3 className="mt-5 text-lg font-bold text-gray-900">Submit a Claim</h3>
+            <h3 className="mt-5 text-lg font-bold text-gray-900">
+              Submit a Claim
+            </h3>
             <p className="mt-2 text-sm leading-6 text-gray-600">
               Submit a new insurance claim to our team.
             </p>
             <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#A03822]">
               Submit Claim
-              <ArrowRight size={16} className="transition group-hover:translate-x-1" />
+              <ArrowRight
+                size={16}
+                className="transition group-hover:translate-x-1"
+              />
             </div>
           </Link>
 
@@ -573,13 +665,18 @@ export default function Dashboard() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAF3F0]">
               <User className="text-[#A03822]" size={24} />
             </div>
-            <h3 className="mt-5 text-lg font-bold text-gray-900">Apply for Policy</h3>
+            <h3 className="mt-5 text-lg font-bold text-gray-900">
+              Apply for Policy
+            </h3>
             <p className="mt-2 text-sm leading-6 text-gray-600">
               Submit your direct policy application form.
             </p>
             <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#A03822]">
               Start Application
-              <ArrowRight size={16} className="transition group-hover:translate-x-1" />
+              <ArrowRight
+                size={16}
+                className="transition group-hover:translate-x-1"
+              />
             </div>
           </Link>
         </div>
@@ -588,7 +685,9 @@ export default function Dashboard() {
         <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">My Quote Requests</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                My Quote Requests
+              </h2>
               <p className="mt-1 text-sm text-gray-500">
                 View your submitted insurance quote requests.
               </p>
@@ -616,7 +715,9 @@ export default function Dashboard() {
           {!isLoadingQuotes && !quoteError && quotes.length === 0 && (
             <div className="mt-6 rounded-xl border border-dashed border-gray-300 p-8 text-center">
               <FileText className="mx-auto text-gray-400" size={32} />
-              <h3 className="mt-3 font-semibold text-gray-900">No quote requests yet</h3>
+              <h3 className="mt-3 font-semibold text-gray-900">
+                No quote requests yet
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
                 You have not submitted any insurance quote requests.
               </p>
@@ -634,7 +735,10 @@ export default function Dashboard() {
               {quotes.map((quote) => {
                 const status = getStatusStyle(quote.status);
                 return (
-                  <div key={quote.id} className="rounded-xl border border-gray-200 p-5">
+                  <div
+                    key={quote.id}
+                    className="rounded-xl border border-gray-200 p-5"
+                  >
                     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -705,7 +809,9 @@ export default function Dashboard() {
           {!isLoadingClaims && !claimError && claims.length === 0 && (
             <div className="mt-6 rounded-xl border border-dashed border-gray-300 p-8 text-center">
               <ShieldCheck className="mx-auto text-gray-400" size={32} />
-              <h3 className="mt-3 font-semibold text-gray-900">No claims submitted yet</h3>
+              <h3 className="mt-3 font-semibold text-gray-900">
+                No claims submitted yet
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
                 You have not submitted any insurance claims.
               </p>
@@ -723,7 +829,10 @@ export default function Dashboard() {
               {claims.map((claim) => {
                 const status = getStatusStyle(claim.status);
                 return (
-                  <div key={claim.id} className="rounded-xl border border-gray-200 p-5">
+                  <div
+                    key={claim.id}
+                    className="rounded-xl border border-gray-200 p-5"
+                  >
                     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -773,6 +882,7 @@ export default function Dashboard() {
             </div>
 
             <button
+              type="button"
               onClick={() => navigate("/apply-policy")}
               className="rounded-lg bg-[#A03822] px-4 py-2 text-sm font-semibold text-white hover:bg-[#852e1b]"
             >
@@ -780,54 +890,162 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {policyApplications.length === 0 ? (
-            <div className="rounded-lg bg-gray-50 py-10 text-center">
-              <p className="text-gray-500">
-                You haven't submitted any policy applications yet.
-              </p>
-              <button
-                onClick={() => navigate("/apply-policy")}
-                className="mt-3 font-semibold text-[#A03822] hover:underline"
-              >
-                Apply Now
-              </button>
+          {isLoadingApplications && (
+            <div className="rounded-lg bg-gray-50 p-5 text-center text-sm text-gray-500">
+              Loading your policy applications...
             </div>
+          )}
+
+          {applicationError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {applicationError}
+            </div>
+          )}
+
+          {!isLoadingApplications &&
+            !applicationError &&
+            policyApplications.length === 0 && (
+              <div className="rounded-lg bg-gray-50 py-10 text-center">
+                <p className="text-gray-500">
+                  You haven&apos;t submitted any policy applications yet.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/apply-policy")}
+                  className="mt-3 font-semibold text-[#A03822] hover:underline"
+                >
+                  Apply Now
+                </button>
+              </div>
+            )}
+
+          {!isLoadingApplications &&
+            !applicationError &&
+            policyApplications.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-left">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-sm text-gray-600">
+                      <th className="px-4 py-3">Insurance Type</th>
+                      <th className="px-4 py-3">Coverage Amount</th>
+                      <th className="px-4 py-3">Application Date</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {policyApplications.map((application) => {
+                      const status = getStatusStyle(application.status);
+                      return (
+                        <tr key={application.id} className="border-b text-sm">
+                          <td className="px-4 py-4 font-medium text-gray-800">
+                            {formatInsuranceType(application.insuranceType)}
+                          </td>
+
+                          <td className="px-4 py-4 text-gray-700">
+                            ৳
+                            {Number(application.coverageAmount).toLocaleString(
+                              "en-BD"
+                            )}
+                          </td>
+
+                          <td className="px-4 py-4 text-gray-600">
+                            {formatDate(application.createdAt)}
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
+                            >
+                              {status.icon}
+                              {formatInsuranceType(application.status)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </div>
+
+        {/* PAYMENT HISTORY SECTION */}
+        <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-5 text-xl font-bold text-gray-800">
+            Payment History
+          </h2>
+
+          {paymentLoading ? (
+            <p className="text-gray-500">Loading payments...</p>
+          ) : paymentError ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {paymentError}
+            </div>
+          ) : payments.length === 0 ? (
+            <p className="text-gray-500">No payment history found.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px] text-left">
+              <table className="w-full min-w-[760px] text-left text-sm">
                 <thead>
-                  <tr className="border-b bg-gray-50 text-sm text-gray-600">
-                    <th className="px-4 py-3">Insurance Type</th>
-                    <th className="px-4 py-3">Coverage Amount</th>
-                    <th className="px-4 py-3">Application Date</th>
-                    <th className="px-4 py-3">Status</th>
+                  <tr className="border-b bg-gray-50 text-gray-600">
+                    <th className="p-3">Policy Number</th>
+                    <th className="p-3">Amount</th>
+                    <th className="p-3">Method</th>
+                    <th className="p-3">Transaction ID</th>
+                    <th className="p-3">Date</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Receipt</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {policyApplications.map((application) => {
-                    const status = getStatusStyle(application.status);
+                  {payments.map((payment) => {
+                    const status = getStatusStyle(payment.status);
                     return (
-                      <tr key={application.id} className="border-b text-sm">
-                        <td className="px-4 py-4 font-medium text-gray-800">
-                          {formatInsuranceType(application.insuranceType)}
+                      <tr key={payment.id} className="border-b last:border-b-0">
+                        <td className="p-3 font-medium text-gray-800">
+                          {payment.policy?.policyNumber || "N/A"}
                         </td>
 
-                        <td className="px-4 py-4 text-gray-700">
-                          ৳{Number(application.coverageAmount).toLocaleString("en-BD")}
+                        <td className="p-3 text-gray-700">
+                          ৳{Number(payment.amount).toLocaleString("en-BD")}
                         </td>
 
-                        <td className="px-4 py-4 text-gray-600">
-                          {formatDate(application.createdAt)}
+                        <td className="p-3 text-gray-700">
+                          {payment.paymentMethod}
                         </td>
 
-                        <td className="px-4 py-4">
+                        <td className="p-3 text-gray-600">
+                          {payment.transactionId || "Not available"}
+                        </td>
+
+                        <td className="p-3 text-gray-600">
+                          {formatDate(payment.createdAt)}
+                        </td>
+
+                        <td className="p-3">
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
                           >
                             {status.icon}
-                            {formatInsuranceType(application.status)}
+                            {formatInsuranceType(payment.status)}
                           </span>
+                        </td>
+
+                        <td className="p-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              window.open(
+                                `/payment-receipt/${payment.id}`,
+                                "_blank"
+                              )
+                            }
+                            className="rounded-lg bg-orange-500 px-3 py-2 text-white hover:bg-orange-600"
+                          >
+                            View Receipt
+                          </button>
                         </td>
                       </tr>
                     );
@@ -836,7 +1054,7 @@ export default function Dashboard() {
               </table>
             </div>
           )}
-        </div>
+        </section>
       </section>
     </main>
   );

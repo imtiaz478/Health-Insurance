@@ -18,9 +18,11 @@ export default [
     route("register", "./routes/register.tsx"),
     route("login", "./routes/login.tsx"),
     route("dashboard", "./routes/dashboard.tsx"),
+    route("payment-receipt/:paymentId", "./routes/payment-receipt.tsx"),
     route("premium-calculator", "./routes/premium-calculator.tsx"),
     route("apply-policy", "./routes/apply-policy.tsx"),
     route("admin/login", "./routes/admin-login.tsx"),
     route("admin/dashboard", "./routes/admin-dashboard.tsx"),
+    
   ]),
 ] satisfies RouteConfig;

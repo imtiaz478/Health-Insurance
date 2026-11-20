@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -71,6 +70,41 @@ interface PolicyApplication {
   };
 }
 
+interface Policy {
+  id: string;
+  policyNumber: string;
+  insuranceType: string;
+  coverageAmount: number | string;
+  premiumAmount: number | string;
+  startDate: string;
+  expiryDate: string;
+  status: string;
+  createdAt: string;
+  customer: {
+    name: string;
+    email: string | null;
+    phone: string;
+  };
+}
+
+interface AdminPayment {
+  id: string;
+  amount: number | string;
+  paymentMethod: string;
+  status: string;
+  transactionId: string | null;
+  createdAt: string;
+  customer: {
+    name: string;
+    email: string | null;
+    phone: string;
+  };
+  policy: {
+    policyNumber: string;
+    insuranceType: string;
+  };
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
@@ -82,10 +116,150 @@ export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [applications, setApplications] = useState<PolicyApplication[]>([]);
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [payments, setPayments] = useState<AdminPayment[]>([]);
 
   const [updatingQuoteId, setUpdatingQuoteId] = useState<string | null>(null);
   const [updatingClaimId, setUpdatingClaimId] = useState<string | null>(null);
-  const [updatingApplicationId, setUpdatingApplicationId] = useState<string | null>(null);
+  const [updatingApplicationId, setUpdatingApplicationId] = useState<
+    string | null
+  >(null);
+  const [policyActionId, setPolicyActionId] = useState<string | null>(null);
+
+  const fetchPolicies = async () => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/policies", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error(data.message || "Failed to fetch policies");
+        return;
+      }
+
+      setPolicies(data.policies ?? data.data ?? []);
+    } catch (error) {
+      console.error("Failed to fetch policies:", error);
+    }
+  };
+
+  const fetchAllPayments = async () => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/payments/admin/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPayments(data.payments ?? data.data ?? []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch payments:", error);
+    }
+  };
+
+  const updatePolicyStatus = async (id: string, status: string) => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    setPolicyActionId(id);
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/policies/${id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        await fetchPolicies();
+        alert("Policy status updated successfully!");
+      } else {
+        alert(data.message || "Failed to update policy status.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    } finally {
+      setPolicyActionId(null);
+    }
+  };
+
+  const deletePolicy = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this policy?"
+    );
+
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    setPolicyActionId(id);
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/policies/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await fetchPolicies();
+        alert("Policy deleted successfully!");
+      } else {
+        alert(data.message || "Failed to delete policy.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    } finally {
+      setPolicyActionId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -158,6 +332,9 @@ export default function AdminDashboard() {
         setQuotes(quotesData.data);
         setClaims(claimsData.data);
         setApplications(applicationsData.data);
+
+        await fetchPolicies();
+        await fetchAllPayments();
       } catch (error) {
         console.error("Dashboard loading error:", error);
       } finally {
@@ -356,6 +533,10 @@ export default function AdminDashboard() {
         );
       }
 
+      if (status === "APPROVED") {
+        await fetchPolicies();
+      }
+
       alert("Policy application status updated successfully!");
     } catch (error) {
       console.error("Application status update error:", error);
@@ -470,7 +651,10 @@ export default function AdminDashboard() {
               <tbody>
                 {customers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       No customers found.
                     </td>
                   </tr>
@@ -518,7 +702,10 @@ export default function AdminDashboard() {
               <tbody>
                 {quotes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       No quotes found.
                     </td>
                   </tr>
@@ -555,7 +742,9 @@ export default function AdminDashboard() {
                         </select>
 
                         {updatingQuoteId === quote.id && (
-                          <p className="text-xs text-orange-500 mt-1">Updating...</p>
+                          <p className="text-xs text-orange-500 mt-1">
+                            Updating...
+                          </p>
                         )}
                       </td>
 
@@ -595,7 +784,10 @@ export default function AdminDashboard() {
               <tbody>
                 {claims.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       No claims found.
                     </td>
                   </tr>
@@ -610,7 +802,9 @@ export default function AdminDashboard() {
                       </td>
 
                       <td className="px-6 py-4">{claim.customer.phone}</td>
-                      <td className="px-6 py-4">{claim.policyNumber || "N/A"}</td>
+                      <td className="px-6 py-4">
+                        {claim.policyNumber || "N/A"}
+                      </td>
 
                       <td className="px-6 py-4 max-w-xs">
                         <p className="truncate">{claim.description}</p>
@@ -633,7 +827,9 @@ export default function AdminDashboard() {
                         </select>
 
                         {updatingClaimId === claim.id && (
-                          <p className="text-xs text-orange-500 mt-1">Updating...</p>
+                          <p className="text-xs text-orange-500 mt-1">
+                            Updating...
+                          </p>
                         )}
                       </td>
 
@@ -676,13 +872,19 @@ export default function AdminDashboard() {
               <tbody>
                 {applications.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       No policy applications found.
                     </td>
                   </tr>
                 ) : (
                   applications.map((application) => (
-                    <tr key={application.id} className="border-t hover:bg-gray-50">
+                    <tr
+                      key={application.id}
+                      className="border-t hover:bg-gray-50"
+                    >
                       <td className="px-6 py-4">
                         <p className="font-medium">{application.customer.name}</p>
                         <p className="text-sm text-gray-500">
@@ -737,6 +939,184 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
+
+        {/* Policies Section */}
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-800">
+              Policy Management
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              View and manage all issued insurance policies.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b bg-gray-50 text-gray-600 text-sm">
+                  <th className="p-3">Policy Number</th>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Insurance Type</th>
+                  <th className="p-3">Coverage</th>
+                  <th className="p-3">Premium</th>
+                  <th className="p-3">Expiry Date</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {policies.length > 0 ? (
+                  policies.map((policy) => (
+                    <tr key={policy.id} className="border-b text-sm">
+                      <td className="p-3 font-medium">
+                        {policy.policyNumber}
+                      </td>
+
+                      <td className="p-3">
+                        <div>{policy.customer.name}</div>
+                        <div className="text-gray-500 text-xs">
+                          {policy.customer.phone}
+                        </div>
+                      </td>
+
+                      <td className="p-3">{policy.insuranceType}</td>
+
+                      <td className="p-3">
+                        ৳{Number(policy.coverageAmount).toLocaleString()}
+                      </td>
+
+                      <td className="p-3">
+                        ৳{Number(policy.premiumAmount).toLocaleString()}
+                      </td>
+
+                      <td className="p-3">
+                        {new Date(policy.expiryDate).toLocaleDateString()}
+                      </td>
+
+                      <td className="p-3">
+                        <span className="px-3 py-1 rounded-full text-xs bg-gray-100">
+                          {policy.status}
+                        </span>
+                      </td>
+
+                      <td className="p-3">
+                        <div className="flex flex-col gap-2">
+                          <select
+                            value={policy.status}
+                            disabled={policyActionId === policy.id}
+                            onChange={(e) =>
+                              updatePolicyStatus(policy.id, e.target.value)
+                            }
+                            className="border rounded-lg px-2 py-1 text-sm disabled:opacity-50"
+                          >
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="EXPIRED">EXPIRED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
+
+                          <button
+                            disabled={policyActionId === policy.id}
+                            onClick={() => deletePolicy(policy.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs disabled:opacity-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="p-6 text-center text-gray-500 text-sm"
+                    >
+                      No policies found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Payment Management Section */}
+        <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-5 text-xl font-bold text-gray-800">
+            Payment Management
+          </h2>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50 text-gray-600">
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Policy Number</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Method</th>
+                  <th className="p-3">Transaction ID</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {payments.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-5 text-center text-gray-500">
+                      No payments found.
+                    </td>
+                  </tr>
+                ) : (
+                  payments.map((payment) => (
+                    <tr key={payment.id} className="border-b">
+                      <td className="p-3">
+                        <div className="font-medium">{payment.customer.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {payment.customer.phone}
+                        </div>
+                      </td>
+
+                      <td className="p-3">{payment.policy.policyNumber}</td>
+
+                      <td className="p-3">
+                        ৳{Number(payment.amount).toLocaleString("en-BD")}
+                      </td>
+
+                      <td className="p-3">{payment.paymentMethod}</td>
+
+                      <td className="p-3">
+                        {payment.transactionId || "Not available"}
+                      </td>
+
+                      <td className="p-3">
+                        {new Date(payment.createdAt).toLocaleDateString()}
+                      </td>
+
+                      <td className="p-3">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            payment.status === "SUCCESS"
+                              ? "bg-green-100 text-green-700"
+                              : payment.status === "FAILED"
+                              ? "bg-red-100 text-red-700"
+                              : payment.status === "REFUNDED"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {payment.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
   );

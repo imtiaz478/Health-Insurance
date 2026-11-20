@@ -41,6 +41,25 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum PolicyStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  CARD
+}
+
 model Customer {
   id           String   @id @default(uuid())
   name         String
@@ -53,6 +72,8 @@ model Customer {
   quotes             Quote[]
   claims             Claim[]
   policyApplications PolicyApplication[]
+  policies           Policy[]
+  payments           Payment[]
 }
 
 model Quote {
@@ -108,4 +129,44 @@ model PolicyApplication {
   updatedAt      DateTime          @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id])
+  policy   Policy?
+}
+
+model Policy {
+  id                  String       @id @default(uuid())
+  policyNumber        String       @unique
+  customerId          String
+  insuranceType       InsuranceType
+  coverageAmount      Decimal      @db.Decimal(15, 2)
+  premiumAmount        Decimal      @db.Decimal(15, 2)
+  startDate            DateTime
+  expiryDate           DateTime
+  status               PolicyStatus @default(ACTIVE)
+  details              String?      @db.Text
+  policyApplicationId  String?      @unique
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  customer          Customer          @relation(fields: [customerId], references: [id])
+  policyApplication PolicyApplication? @relation(fields: [policyApplicationId], references: [id])
+  payments          Payment[]
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  customerId    String
+  policyId      String
+  amount        Decimal       @db.Decimal(15, 2)
+  paymentMethod PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  transactionId String?       @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  policy   Policy   @relation(fields: [policyId], references: [id])
+
+  @@index([customerId])
+  @@index([policyId])
+  @@index([status])
 }
