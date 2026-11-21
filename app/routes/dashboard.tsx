@@ -15,6 +15,42 @@ import {
   X,
 } from "lucide-react";
 
+const downloadPolicyPdf = async (policyId: string) => {
+  try {
+    const token = localStorage.getItem("customerToken");
+
+    const response = await fetch(
+      `http://localhost:5000/api/policy-pdf/${policyId}/pdf`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to download policy PDF.");
+    }
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `policy-${policyId}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("PDF download error:", error);
+    alert("Failed to download policy PDF.");
+  }
+};
+
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Customer Dashboard | Purabi General Insurance" },
@@ -58,6 +94,14 @@ interface PolicyApplication {
   createdAt: string;
 }
 
+interface Policy {
+  id: string;
+  policyNumber: string;
+  insuranceType: string;
+  premium: number | string;
+  status?: string;
+}
+
 interface Payment {
   id: string;
   amount: number | string;
@@ -95,9 +139,16 @@ export default function Dashboard() {
   const [isLoadingApplications, setIsLoadingApplications] = useState(true);
   const [applicationError, setApplicationError] = useState("");
 
+  // My Policies
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
+  const [policyError, setPolicyError] = useState("");
+
   // Payments
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentLoading, setPaymentLoading] = useState(true);
+  const [policySearch, setPolicySearch] = useState("");
+  const [paymentSearch, setPaymentSearch] = useState("");
   const [paymentError, setPaymentError] = useState("");
 
   // Profile
@@ -133,6 +184,7 @@ export default function Dashboard() {
       void fetchMyQuotes(token);
       void fetchMyClaims(token);
       void fetchPolicyApplications(token);
+      void fetchMyPolicies(token);
       void fetchPayments(token);
     } catch {
       redirectToLogin();
@@ -251,6 +303,44 @@ export default function Dashboard() {
     }
   }
 
+  async function fetchMyPolicies(token: string) {
+    try {
+      setIsLoadingPolicies(true);
+      setPolicyError("");
+
+      const response = await fetch(`${API_BASE_URL}/policies/my-policies`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to load your policies.");
+      }
+
+      const list = Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data.policies)
+          ? data.policies
+          : [];
+      setPolicies(list);
+    } catch (error) {
+      console.error("Policies fetch error:", error);
+      setPolicyError(
+        error instanceof Error ? error.message : "Failed to load your policies."
+      );
+    } finally {
+      setIsLoadingPolicies(false);
+    }
+  }
+
   async function fetchPayments(token: string) {
     try {
       setPaymentLoading(true);
@@ -285,6 +375,58 @@ export default function Dashboard() {
       setPaymentLoading(false);
     }
   }
+
+  const filteredPolicies = policies.filter((policy) => {
+    const search = policySearch.toLowerCase();
+
+    return (
+      policy.policyNumber.toLowerCase().includes(search) ||
+      policy.insuranceType.toLowerCase().includes(search)
+    );
+  });
+
+  const filteredPayments = payments.filter((payment) => {
+    const search = paymentSearch.toLowerCase();
+
+    return (
+      payment.policy.policyNumber.toLowerCase().includes(search) ||
+      payment.paymentMethod.toLowerCase().includes(search) ||
+      payment.transactionId?.toLowerCase().includes(search)
+    );
+  });
+
+  const handlePayPremium = async (policyId: string) => {
+    try {
+      const token = localStorage.getItem("customerToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/payments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            policyId,
+            paymentMethod: "BKASH",
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+        alert(data.message || "Failed to create payment.");
+        return;
+      }
+
+      window.location.href = `/payment/${data.payment.id}`;
+    } catch (error) {
+      console.error("Payment creation failed:", error);
+      alert("Something went wrong while creating payment.");
+    }
+  };
 
   // =========================
   // UPDATE PROFILE
@@ -681,6 +823,97 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {/* MY POLICIES */}
+        <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">My Policies</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                View your active policies and pay premiums.
+              </p>
+            </div>
+          </div>
+
+          {isLoadingPolicies && (
+            <div className="rounded-lg bg-gray-50 p-5 text-center text-sm text-gray-500">
+              Loading your policies...
+            </div>
+          )}
+
+          {policyError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {policyError}
+            </div>
+          )}
+
+          {!isLoadingPolicies && !policyError && policies.length === 0 && (
+            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+              <p className="text-sm text-gray-500">No policies found yet.</p>
+            </div>
+          )}
+
+          {!isLoadingPolicies && !policyError && policies.length > 0 && (
+            <>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search by policy number or insurance type..."
+                  value={policySearch}
+                  onChange={(e) => setPolicySearch(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-left">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-sm text-gray-600">
+                      <th className="px-4 py-3">Policy Number</th>
+                      <th className="px-4 py-3">Insurance Type</th>
+                      <th className="px-4 py-3">Premium</th>
+                      <th className="px-4 py-3">Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredPolicies.map((policy) => (
+                      <tr key={policy.id} className="border-b text-sm">
+                        <td className="px-4 py-4 font-medium text-gray-900">
+                          {policy.policyNumber}
+                        </td>
+                        <td className="px-4 py-4 text-gray-700">
+                          {formatInsuranceType(policy.insuranceType)}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-900">
+                          ৳{Number(policy.premium).toLocaleString("en-BD")}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {policy.status === "ACTIVE" && (
+                              <button
+                                onClick={() => handlePayPremium(policy.id)}
+                                className="rounded-lg bg-orange-500 px-4 py-2 text-white hover:bg-orange-600"
+                              >
+                                Pay Premium
+                              </button>
+                            )}
+                            <button
+                              onClick={() => downloadPolicyPdf(policy.id)}
+                              className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+                            >
+                              Download Policy PDF
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+
         {/* MY QUOTES */}
         <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -955,7 +1188,7 @@ export default function Dashboard() {
 
                           <td className="px-4 py-4">
                             <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
+                              className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
                             >
                               {status.icon}
                               {formatInsuranceType(application.status)}
@@ -970,91 +1203,109 @@ export default function Dashboard() {
             )}
         </div>
 
-        {/* PAYMENT HISTORY SECTION */}
-        <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-5 text-xl font-bold text-gray-800">
-            Payment History
-          </h2>
+        {/* MY PAYMENTS */}
+        <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900">
+              Payment History
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Review your insurance premium payments and transaction statuses.
+            </p>
+          </div>
 
-          {paymentLoading ? (
-            <p className="text-gray-500">Loading payments...</p>
-          ) : paymentError ? (
+          {paymentLoading && (
+            <div className="rounded-lg bg-gray-50 p-5 text-center text-sm text-gray-500">
+              Loading your payment history...
+            </div>
+          )}
+
+          {paymentError && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               {paymentError}
             </div>
-          ) : payments.length === 0 ? (
-            <p className="text-gray-500">No payment history found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
-                <thead>
-                  <tr className="border-b bg-gray-50 text-gray-600">
-                    <th className="p-3">Policy Number</th>
-                    <th className="p-3">Amount</th>
-                    <th className="p-3">Method</th>
-                    <th className="p-3">Transaction ID</th>
-                    <th className="p-3">Date</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Receipt</th>
-                  </tr>
-                </thead>
+          )}
 
-                <tbody>
-                  {payments.map((payment) => {
-                    const status = getStatusStyle(payment.status);
-                    return (
-                      <tr key={payment.id} className="border-b last:border-b-0">
-                        <td className="p-3 font-medium text-gray-800">
-                          {payment.policy?.policyNumber || "N/A"}
-                        </td>
-
-                        <td className="p-3 text-gray-700">
-                          ৳{Number(payment.amount).toLocaleString("en-BD")}
-                        </td>
-
-                        <td className="p-3 text-gray-700">
-                          {payment.paymentMethod}
-                        </td>
-
-                        <td className="p-3 text-gray-600">
-                          {payment.transactionId || "Not available"}
-                        </td>
-
-                        <td className="p-3 text-gray-600">
-                          {formatDate(payment.createdAt)}
-                        </td>
-
-                        <td className="p-3">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
-                          >
-                            {status.icon}
-                            {formatInsuranceType(payment.status)}
-                          </span>
-                        </td>
-
-                        <td className="p-3">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              window.open(
-                                `/payment-receipt/${payment.id}`,
-                                "_blank"
-                              )
-                            }
-                            className="rounded-lg bg-orange-500 px-3 py-2 text-white hover:bg-orange-600"
-                          >
-                            View Receipt
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          {!paymentLoading && !paymentError && payments.length === 0 && (
+            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+              <p className="text-sm text-gray-500">
+                No payment records found yet.
+              </p>
             </div>
           )}
-        </section>
+
+          {!paymentLoading && !paymentError && payments.length > 0 && (
+            <>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search by policy number, transaction ID or method..."
+                  value={paymentSearch}
+                  onChange={(e) => setPaymentSearch(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[680px] text-left">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-sm text-gray-600">
+                      <th className="px-4 py-3">Policy</th>
+                      <th className="px-4 py-3">Method</th>
+                      <th className="px-4 py-3">Transaction ID</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredPayments.map((payment) => {
+                      const status = getStatusStyle(payment.status);
+                      return (
+                        <tr key={payment.id} className="border-b text-sm">
+                          <td className="px-4 py-4">
+                            <p className="font-medium text-gray-900">
+                              {payment.policy.policyNumber}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatInsuranceType(payment.policy.insuranceType)}
+                            </p>
+                          </td>
+
+                          <td className="px-4 py-4 text-gray-700">
+                            {formatInsuranceType(payment.paymentMethod)}
+                          </td>
+
+                          <td className="px-4 py-4 font-mono text-xs text-gray-600">
+                            {payment.transactionId || "—"}
+                          </td>
+
+                          <td className="px-4 py-4 font-medium text-gray-900">
+                            ৳{Number(payment.amount).toLocaleString("en-BD")}
+                          </td>
+
+                          <td className="px-4 py-4 text-gray-600">
+                            {formatDate(payment.createdAt)}
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
+                            >
+                              {status.icon}
+                              {formatInsuranceType(payment.status)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
       </section>
     </main>
   );

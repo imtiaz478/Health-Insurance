@@ -1,6 +1,6 @@
-
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../middleware/customerAuth.middleware.js";
+import type { AuthenticatedAdminRequest } from "../middleware/adminAuth.middleware.js";
 import { z } from "zod";
 import prisma from "../config/database.js";
 
@@ -126,10 +126,6 @@ export const getMyPayments = async (
   }
 };
 
-
-
-import type { AuthenticatedAdminRequest } from "../middleware/adminAuth.middleware.js";
-
 export const getAllPayments = async (
   req: AuthenticatedAdminRequest,
   res: Response
@@ -170,8 +166,6 @@ export const getAllPayments = async (
     });
   }
 };
-
-
 
 export const getPaymentById = async (
   req: AuthenticatedRequest,
@@ -224,3 +218,76 @@ export const getPaymentById = async (
   }
 };
 
+export const processMockPayment = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const customerId = req.customerId;
+
+    if (!customerId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const { paymentId, paymentMethod } = req.body;
+
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment ID is required.",
+      });
+    }
+
+    const payment = await prisma.payment.findFirst({
+      where: {
+        id: paymentId,
+        customerId,
+      },
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment not found.",
+      });
+    }
+
+    if (payment.status === "SUCCESS") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment is already successful.",
+      });
+    }
+
+    const transactionId = `MOCK-${Date.now()}-${Math.floor(
+      Math.random() * 10000
+    )}`;
+
+    const updatedPayment = await prisma.payment.update({
+      where: {
+        id: paymentId,
+      },
+      data: {
+        status: "SUCCESS",
+        paymentMethod,
+        transactionId,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Mock payment completed successfully.",
+      payment: updatedPayment,
+    });
+  } catch (error) {
+    console.error("Mock payment error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "can not process mock payment.",
+    });
+  }
+};

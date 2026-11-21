@@ -18,6 +18,11 @@ import policyRoutes from "./routes/policy.routes.js";
 
 import paymentRoutes from "./routes/payment.routes.js";
 
+import documentRoutes from "./routes/document.routes.js";
+
+import adminDocumentRoutes from "./routes/adminDocument.routes.js";
+
+import policyPdfRoutes from "./routes/policyPdf.routes.js";
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -51,6 +56,12 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/policies", policyRoutes);
 
 app.use("/api/payments", paymentRoutes);
+
+app.use("/api/documents", documentRoutes);
+
+app.use("/api/admin/documents", adminDocumentRoutes);
+
+app.use("/api/policy-pdf", policyPdfRoutes);
 
 // Welcome route
 app.get("/", (req, res) => {

@@ -105,6 +105,28 @@ interface AdminPayment {
   };
 }
 
+const getStatusBadgeClass = (status: string) => {
+  switch (status.toUpperCase()) {
+    case "ACTIVE":
+    case "APPROVED":
+    case "COMPLETED":
+    case "PAID":
+    case "SUCCESS":
+      return "bg-green-100 text-green-700";
+    case "PENDING":
+    case "PROCESSING":
+    case "UNDER_REVIEW":
+      return "bg-yellow-100 text-yellow-800";
+    case "REJECTED":
+    case "CANCELLED":
+    case "EXPIRED":
+    case "FAILED":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
@@ -113,6 +135,18 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [quoteSearch, setQuoteSearch] = useState("");
+  const [quoteStatusFilter, setQuoteStatusFilter] = useState("ALL");
+  const [claimSearch, setClaimSearch] = useState("");
+  const [claimStatusFilter, setClaimStatusFilter] = useState("ALL");
+  const [applicationSearch, setApplicationSearch] = useState("");
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState("ALL");
+  const [policySearch, setPolicySearch] = useState("");
+  const [policyStatusFilter, setPolicyStatusFilter] = useState("ALL");
+  const [paymentSearch, setPaymentSearch] = useState("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("ALL");
+
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [applications, setApplications] = useState<PolicyApplication[]>([]);
@@ -181,6 +215,86 @@ export default function AdminDashboard() {
       console.error("Failed to fetch payments:", error);
     }
   };
+
+  const filteredCustomers = customers.filter((customer) => {
+    const search = customerSearch.toLowerCase();
+
+    return (
+      customer.name.toLowerCase().includes(search) ||
+      customer.email?.toLowerCase().includes(search) ||
+      customer.phone.toLowerCase().includes(search)
+    );
+  });
+
+  const filteredQuotes = quotes.filter((quote) => {
+    const search = quoteSearch.toLowerCase();
+
+    const matchesSearch =
+      quote.id.toLowerCase().includes(search) ||
+      quote.customer?.name?.toLowerCase().includes(search) ||
+      quote.customer?.email?.toLowerCase().includes(search);
+
+    const matchesStatus =
+      quoteStatusFilter === "ALL" || quote.status === quoteStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredClaims = claims.filter((claim) => {
+    const search = claimSearch.toLowerCase();
+
+    const matchesSearch =
+      claim.id.toLowerCase().includes(search) ||
+      claim.customer?.name?.toLowerCase().includes(search) ||
+      claim.customer?.email?.toLowerCase().includes(search);
+
+    const matchesStatus =
+      claimStatusFilter === "ALL" || claim.status === claimStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredApplications = applications.filter((application) => {
+    const search = applicationSearch.toLowerCase();
+
+    const matchesSearch =
+      application.id.toLowerCase().includes(search) ||
+      application.customer?.name?.toLowerCase().includes(search) ||
+      application.insuranceType.toLowerCase().includes(search);
+
+    const matchesStatus =
+      applicationStatusFilter === "ALL" ||
+      application.status === applicationStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredPolicies = policies.filter((policy) => {
+    const search = policySearch.toLowerCase();
+
+    const matchesSearch =
+      policy.policyNumber.toLowerCase().includes(search) ||
+      policy.customer?.name?.toLowerCase().includes(search);
+
+    const matchesStatus =
+      policyStatusFilter === "ALL" || policy.status === policyStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredPayments = payments.filter((payment) => {
+    const search = paymentSearch.toLowerCase();
+
+    const matchesSearch =
+      payment.customer.name.toLowerCase().includes(search) ||
+      payment.policy.policyNumber.toLowerCase().includes(search) ||
+      payment.transactionId?.toLowerCase().includes(search);
+
+    const matchesStatus =
+      paymentStatusFilter === "ALL" || payment.status === paymentStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const updatePolicyStatus = async (id: string, status: string) => {
     const token = localStorage.getItem("adminToken");
@@ -635,6 +749,18 @@ export default function AdminDashboard() {
             </p>
           </div>
 
+          <div className="p-6 pb-0">
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search by name, email or phone..."
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              />
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-100">
@@ -649,7 +775,7 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody>
-                {customers.length === 0 ? (
+                {filteredCustomers.length === 0 ? (
                   <tr>
                     <td
                       colSpan={6}
@@ -659,7 +785,7 @@ export default function AdminDashboard() {
                     </td>
                   </tr>
                 ) : (
-                  customers.map((customer) => (
+                  filteredCustomers.map((customer) => (
                     <tr key={customer.id} className="border-t hover:bg-gray-50">
                       <td className="px-6 py-4 font-medium">{customer.name}</td>
                       <td className="px-6 py-4">{customer.email || "N/A"}</td>
@@ -686,6 +812,30 @@ export default function AdminDashboard() {
             </p>
           </div>
 
+          <div className="p-6 pb-0">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                placeholder="Search by quote ID, customer name or email..."
+                value={quoteSearch}
+                onChange={(e) => setQuoteSearch(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              />
+
+              <select
+                value={quoteStatusFilter}
+                onChange={(e) => setQuoteStatusFilter(e.target.value)}
+                className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              >
+                <option value="ALL">All Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="PROCESSING">Processing</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-100">
@@ -700,7 +850,7 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody>
-                {quotes.length === 0 ? (
+                {filteredQuotes.length === 0 ? (
                   <tr>
                     <td
                       colSpan={6}
@@ -710,7 +860,7 @@ export default function AdminDashboard() {
                     </td>
                   </tr>
                 ) : (
-                  quotes.map((quote) => (
+                  filteredQuotes.map((quote) => (
                     <tr key={quote.id} className="border-t hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <p className="font-medium">{quote.customer.name}</p>
@@ -768,6 +918,31 @@ export default function AdminDashboard() {
             </p>
           </div>
 
+          <div className="p-6 pb-0">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                placeholder="Search by claim ID, customer name or email..."
+                value={claimSearch}
+                onChange={(e) => setClaimSearch(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              />
+
+              <select
+                value={claimStatusFilter}
+                onChange={(e) => setClaimStatusFilter(e.target.value)}
+                className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              >
+                <option value="ALL">All Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-100">
@@ -782,7 +957,7 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody>
-                {claims.length === 0 ? (
+                {filteredClaims.length === 0 ? (
                   <tr>
                     <td
                       colSpan={6}
@@ -792,7 +967,7 @@ export default function AdminDashboard() {
                     </td>
                   </tr>
                 ) : (
-                  claims.map((claim) => (
+                  filteredClaims.map((claim) => (
                     <tr key={claim.id} className="border-t hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <p className="font-medium">{claim.customer.name}</p>
@@ -855,6 +1030,30 @@ export default function AdminDashboard() {
             </p>
           </div>
 
+          <div className="p-6 pb-0">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                placeholder="Search by application ID, customer or insurance type..."
+                value={applicationSearch}
+                onChange={(e) => setApplicationSearch(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              />
+
+              <select
+                value={applicationStatusFilter}
+                onChange={(e) => setApplicationStatusFilter(e.target.value)}
+                className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+              >
+                <option value="ALL">All Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-100">
@@ -870,7 +1069,7 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody>
-                {applications.length === 0 ? (
+                {filteredApplications.length === 0 ? (
                   <tr>
                     <td
                       colSpan={7}
@@ -880,7 +1079,7 @@ export default function AdminDashboard() {
                     </td>
                   </tr>
                 ) : (
-                  applications.map((application) => (
+                  filteredApplications.map((application) => (
                     <tr
                       key={application.id}
                       className="border-t hover:bg-gray-50"
@@ -941,7 +1140,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Policies Section */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
           <div className="mb-6">
             <h2 className="text-xl font-bold text-gray-800">
               Policy Management
@@ -949,6 +1148,27 @@ export default function AdminDashboard() {
             <p className="text-sm text-gray-500 mt-1">
               View and manage all issued insurance policies.
             </p>
+          </div>
+
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              type="text"
+              placeholder="Search by policy number or customer name..."
+              value={policySearch}
+              onChange={(e) => setPolicySearch(e.target.value)}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+            />
+
+            <select
+              value={policyStatusFilter}
+              onChange={(e) => setPolicyStatusFilter(e.target.value)}
+              className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+            >
+              <option value="ALL">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="EXPIRED">Expired</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
           </div>
 
           <div className="overflow-x-auto">
@@ -967,15 +1187,18 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody>
-                {policies.length > 0 ? (
-                  policies.map((policy) => (
-                    <tr key={policy.id} className="border-b text-sm">
+                {filteredPolicies.length > 0 ? (
+                  filteredPolicies.map((policy) => (
+                    <tr
+                      key={policy.id}
+                      className="border-b text-sm hover:bg-gray-50"
+                    >
                       <td className="p-3 font-medium">
                         {policy.policyNumber}
                       </td>
 
                       <td className="p-3">
-                        <div>{policy.customer.name}</div>
+                        <div className="font-medium">{policy.customer.name}</div>
                         <div className="text-gray-500 text-xs">
                           {policy.customer.phone}
                         </div>
@@ -996,32 +1219,38 @@ export default function AdminDashboard() {
                       </td>
 
                       <td className="p-3">
-                        <span className="px-3 py-1 rounded-full text-xs bg-gray-100">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(
+                            policy.status
+                          )}`}
+                        >
                           {policy.status}
                         </span>
                       </td>
 
                       <td className="p-3">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
                           <select
                             value={policy.status}
                             disabled={policyActionId === policy.id}
                             onChange={(e) =>
                               updatePolicyStatus(policy.id, e.target.value)
                             }
-                            className="border rounded-lg px-2 py-1 text-sm disabled:opacity-50"
+                            className="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:opacity-50"
                           >
-                            <option value="ACTIVE">ACTIVE</option>
-                            <option value="EXPIRED">EXPIRED</option>
-                            <option value="CANCELLED">CANCELLED</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="EXPIRED">Expired</option>
+                            <option value="CANCELLED">Cancelled</option>
                           </select>
 
                           <button
+                            type="button"
                             disabled={policyActionId === policy.id}
                             onClick={() => deletePolicy(policy.id)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs disabled:opacity-50"
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
                           >
-                            Delete
+                            {policyActionId === policy.id ? "..." : "Delete"}
                           </button>
                         </div>
                       </td>
@@ -1042,76 +1271,110 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        {/* Payment Management Section */}
-        <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-5 text-xl font-bold text-gray-800">
-            Payment Management
-          </h2>
+        {/* Payments Section */}
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Payments</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              All customer policy payments and transaction records.
+            </p>
+          </div>
+
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              type="text"
+              placeholder="Search by customer, policy number or transaction ID..."
+              value={paymentSearch}
+              onChange={(e) => setPaymentSearch(e.target.value)}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+            />
+
+            <select
+              value={paymentStatusFilter}
+              onChange={(e) => setPaymentStatusFilter(e.target.value)}
+              className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500"
+            >
+              <option value="ALL">All Status</option>
+              <option value="PENDING">Pending</option>
+              <option value="SUCCESS">Success</option>
+              <option value="FAILED">Failed</option>
+              <option value="REFUNDED">Refunded</option>
+            </select>
+          </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b bg-gray-50 text-gray-600">
+                <tr className="border-b bg-gray-50 text-gray-600 text-sm">
                   <th className="p-3">Customer</th>
-                  <th className="p-3">Policy Number</th>
+                  <th className="p-3">Policy</th>
                   <th className="p-3">Amount</th>
                   <th className="p-3">Method</th>
                   <th className="p-3">Transaction ID</th>
-                  <th className="p-3">Date</th>
                   <th className="p-3">Status</th>
+                  <th className="p-3">Date</th>
                 </tr>
               </thead>
 
               <tbody>
-                {payments.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-5 text-center text-gray-500">
-                      No payments found.
-                    </td>
-                  </tr>
-                ) : (
-                  payments.map((payment) => (
-                    <tr key={payment.id} className="border-b">
+                {filteredPayments.length > 0 ? (
+                  filteredPayments.map((payment) => (
+                    <tr
+                      key={payment.id}
+                      className="border-b text-sm hover:bg-gray-50"
+                    >
                       <td className="p-3">
-                        <div className="font-medium">{payment.customer.name}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-medium">
+                          {payment.customer.name}
+                        </div>
+                        <div className="text-gray-500 text-xs">
                           {payment.customer.phone}
                         </div>
                       </td>
 
-                      <td className="p-3">{payment.policy.policyNumber}</td>
-
                       <td className="p-3">
-                        ৳{Number(payment.amount).toLocaleString("en-BD")}
+                        <div className="font-medium">
+                          {payment.policy.policyNumber}
+                        </div>
+                        <div className="text-gray-500 text-xs">
+                          {payment.policy.insuranceType}
+                        </div>
+                      </td>
+
+                      <td className="p-3 font-medium">
+                        ৳{Number(payment.amount).toLocaleString()}
                       </td>
 
                       <td className="p-3">{payment.paymentMethod}</td>
 
-                      <td className="p-3">
-                        {payment.transactionId || "Not available"}
-                      </td>
-
-                      <td className="p-3">
-                        {new Date(payment.createdAt).toLocaleDateString()}
+                      <td className="p-3 font-mono text-xs">
+                        {payment.transactionId || "N/A"}
                       </td>
 
                       <td className="p-3">
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            payment.status === "SUCCESS"
-                              ? "bg-green-100 text-green-700"
-                              : payment.status === "FAILED"
-                              ? "bg-red-100 text-red-700"
-                              : payment.status === "REFUNDED"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(
+                            payment.status
+                          )}`}
                         >
                           {payment.status}
                         </span>
                       </td>
+
+                      <td className="p-3 text-gray-600">
+                        {new Date(payment.createdAt).toLocaleDateString()}
+                      </td>
                     </tr>
                   ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="p-6 text-center text-gray-500 text-sm"
+                    >
+                      No payments found.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

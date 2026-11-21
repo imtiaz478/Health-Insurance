@@ -23,6 +23,7 @@ export default [
     route("apply-policy", "./routes/apply-policy.tsx"),
     route("admin/login", "./routes/admin-login.tsx"),
     route("admin/dashboard", "./routes/admin-dashboard.tsx"),
+    route("payment/:paymentId", "./routes/payment.tsx"),
     
   ]),
 ] satisfies RouteConfig;
