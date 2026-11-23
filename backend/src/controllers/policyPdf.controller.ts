@@ -9,7 +9,7 @@ export const downloadPolicyPdf = async (
 ) => {
   try {
     const customerId = req.customerId;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     if (!customerId) {
       return res.status(401).json({

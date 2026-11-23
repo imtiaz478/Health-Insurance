@@ -144,6 +144,9 @@ export default function Dashboard() {
   const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
   const [policyError, setPolicyError] = useState("");
 
+  // Policy Renewals
+  const [renewals, setRenewals] = useState<any[]>([]);
+
   // Payments
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentLoading, setPaymentLoading] = useState(true);
@@ -164,6 +167,66 @@ export default function Dashboard() {
     localStorage.removeItem("customer");
     navigate("/login");
   }
+
+  const requestPolicyRenewal = async (policyId: string) => {
+    try {
+      const token = localStorage.getItem("customerToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/policy-renewal/request",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ policyId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Renewal request failed.");
+      }
+
+      alert("Policy renewal request submitted successfully!");
+      void fetchMyRenewals();
+    } catch (error) {
+      console.error("Renewal request error:", error);
+
+      alert(
+        error instanceof Error ? error.message : "Something went wrong."
+      );
+    }
+  };
+
+  const fetchMyRenewals = async () => {
+    try {
+      const token = localStorage.getItem("customerToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/policy-renewal/my-renewals",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setRenewals(Array.isArray(data.renewals) ? data.renewals : []);
+      }
+    } catch (error) {
+      console.error("Fetch renewals error:", error);
+    }
+  };
+
+  useEffect(() => {
+    void fetchMyRenewals();
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("customerToken");
@@ -399,20 +462,17 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("customerToken");
 
-      const response = await fetch(
-        "http://localhost:5000/api/payments",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            policyId,
-            paymentMethod: "BKASH",
-          }),
-        }
-      );
+      const response = await fetch("http://localhost:5000/api/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          policyId,
+          paymentMethod: "BKASH",
+        }),
+      });
 
       const data = await response.json();
 
@@ -891,6 +951,7 @@ export default function Dashboard() {
                           <div className="flex flex-wrap items-center gap-2">
                             {policy.status === "ACTIVE" && (
                               <button
+                                type="button"
                                 onClick={() => handlePayPremium(policy.id)}
                                 className="rounded-lg bg-orange-500 px-4 py-2 text-white hover:bg-orange-600"
                               >
@@ -898,10 +959,18 @@ export default function Dashboard() {
                               </button>
                             )}
                             <button
+                              type="button"
                               onClick={() => downloadPolicyPdf(policy.id)}
                               className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
                             >
                               Download Policy PDF
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => requestPolicyRenewal(policy.id)}
+                              className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+                            >
+                              Renew Policy
                             </button>
                           </div>
                         </td>
@@ -911,6 +980,72 @@ export default function Dashboard() {
                 </table>
               </div>
             </>
+          )}
+        </div>
+
+        {/* My Renewal Requests */}
+        <div className="mt-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-bold mb-5 text-gray-900">
+            My Renewal Requests
+          </h2>
+
+          {renewals.length === 0 ? (
+            <p className="text-gray-500">No renewal requests found.</p>
+          ) : (
+            <div className="grid gap-4">
+              {renewals.map((renewal) => (
+                <div
+                  key={renewal.id}
+                  className="border border-gray-200 rounded-xl p-5 shadow-sm bg-white"
+                >
+                  <h3 className="font-semibold text-lg text-gray-900">
+                    Policy: {renewal.policy?.policyNumber}
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-700">
+                    Insurance Type: {renewal.policy?.insuranceType}
+                  </p>
+
+                  <p className="text-sm text-gray-700">
+                    Premium: BDT{" "}
+                    {Number(renewal.premiumAmount).toLocaleString()}
+                  </p>
+
+                  <p className="text-sm text-gray-700">
+                    Request Date:{" "}
+                    {new Date(renewal.createdAt).toLocaleDateString()}
+                  </p>
+
+                  <p className="mt-2 text-sm text-gray-700">
+                    Status:{" "}
+                    <span
+                      className={`font-semibold ${
+                        renewal.status === "APPROVED"
+                          ? "text-green-600"
+                          : renewal.status === "REJECTED"
+                            ? "text-red-600"
+                            : "text-yellow-600"
+                      }`}
+                    >
+                      {renewal.status}
+                    </span>
+                  </p>
+
+                  {renewal.newExpiryDate && (
+                    <p className="mt-1 text-sm text-gray-700">
+                      New Expiry Date:{" "}
+                      {new Date(renewal.newExpiryDate).toLocaleDateString()}
+                    </p>
+                  )}
+
+                  {renewal.rejectionReason && (
+                    <p className="mt-2 text-sm text-red-600">
+                      Rejection Reason: {renewal.rejectionReason}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

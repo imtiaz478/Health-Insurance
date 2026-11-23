@@ -1,3 +1,4 @@
+
 {
   "name": "purabi-insurance-backend",
   "version": "1.0.0",
@@ -6,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -26,6 +27,7 @@
     "express": "^5.3.0",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
     "pdfkit": "^0.21.0",
     "zod": "^4.6.7"
   },
@@ -34,7 +36,9 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^26.6.6",
+    "@types/pdfkit": "^0.17.3",
     "prisma": "^6.19.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3"

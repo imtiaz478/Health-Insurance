@@ -73,6 +73,12 @@ enum DocumentStatus {
   REJECTED
 }
 
+enum RenewalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Customer {
   id           String   @id @default(uuid())
   name         String
@@ -88,6 +94,7 @@ model Customer {
   policies           Policy[]
   payments           Payment[]
   documents          Document[]
+  renewals           PolicyRenewal[]
 }
 
 model Quote {
@@ -149,23 +156,24 @@ model PolicyApplication {
 }
 
 model Policy {
-  id                  String       @id @default(uuid())
-  policyNumber        String       @unique
-  customerId          String
-  insuranceType       InsuranceType
-  coverageAmount      Decimal      @db.Decimal(15, 2)
-  premiumAmount        Decimal      @db.Decimal(15, 2)
-  startDate            DateTime
-  expiryDate           DateTime
-  status               PolicyStatus @default(ACTIVE)
-  details              String?      @db.Text
-  policyApplicationId  String?      @unique
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  id                 String        @id @default(uuid())
+  policyNumber       String        @unique
+  customerId         String
+  insuranceType      InsuranceType
+  coverageAmount     Decimal       @db.Decimal(15, 2)
+  premiumAmount      Decimal       @db.Decimal(15, 2)
+  startDate          DateTime
+  expiryDate         DateTime
+  status             PolicyStatus  @default(ACTIVE)
+  details            String?       @db.Text
+  policyApplicationId String?      @unique
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   customer          Customer          @relation(fields: [customerId], references: [id])
   policyApplication PolicyApplication? @relation(fields: [policyApplicationId], references: [id])
   payments          Payment[]
+  renewals          PolicyRenewal[]
 }
 
 model Payment {
@@ -188,25 +196,45 @@ model Payment {
 }
 
 model Document {
-  id                 String         @id @default(uuid())
-  customerId         String
+  id                  String         @id @default(uuid())
+  customerId          String
   policyApplicationId String?
-  claimId            String?
-  documentType       DocumentType
-  fileName           String
-  fileUrl            String         @db.Text
-  status             DocumentStatus @default(PENDING)
-  rejectionReason    String?        @db.Text
-  verifiedAt         DateTime?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  claimId             String?
+  documentType        DocumentType
+  fileName            String
+  fileUrl             String         @db.Text
+  status              DocumentStatus @default(PENDING)
+  rejectionReason     String?        @db.Text
+  verifiedAt          DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
-  customer         Customer          @relation(fields: [customerId], references: [id])
+  customer          Customer          @relation(fields: [customerId], references: [id])
   policyApplication PolicyApplication? @relation(fields: [policyApplicationId], references: [id])
-  claim            Claim?            @relation(fields: [claimId], references: [id])
+  claim             Claim?            @relation(fields: [claimId], references: [id])
 
   @@index([customerId])
   @@index([policyApplicationId])
   @@index([claimId])
+  @@index([status])
+}
+
+model PolicyRenewal {
+  id              String        @id @default(uuid())
+  policyId        String
+  customerId      String
+  status          RenewalStatus @default(PENDING)
+  oldExpiryDate   DateTime
+  newExpiryDate   DateTime?
+  premiumAmount   Decimal       @db.Decimal(15, 2)
+  rejectionReason String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  policy   Policy   @relation(fields: [policyId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([policyId])
+  @@index([customerId])
   @@index([status])
 }

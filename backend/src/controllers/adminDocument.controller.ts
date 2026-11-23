@@ -45,7 +45,7 @@ export const updateDocumentStatus = async (
   res: Response
 ) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { status, rejectionReason } = req.body;
 
     if (!["APPROVED", "REJECTED"].includes(status)) {
@@ -103,7 +103,7 @@ export const viewDocumentFile = async (
   res: Response
 ) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const document = await prisma.document.findUnique({
       where: { id },

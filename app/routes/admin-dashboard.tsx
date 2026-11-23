@@ -152,6 +152,7 @@ export default function AdminDashboard() {
   const [applications, setApplications] = useState<PolicyApplication[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [renewals, setRenewals] = useState<any[]>([]);
 
   const [updatingQuoteId, setUpdatingQuoteId] = useState<string | null>(null);
   const [updatingClaimId, setUpdatingClaimId] = useState<string | null>(null);
@@ -213,6 +214,82 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error("Failed to fetch payments:", error);
+    }
+  };
+
+  const fetchAllRenewals = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/admin/policy-renewals",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setRenewals(data.renewals ?? []);
+      }
+    } catch (error) {
+      console.error("Fetch renewal requests error:", error);
+    }
+  };
+
+  const updateRenewalStatus = async (
+    renewalId: string,
+    status: "APPROVED" | "REJECTED"
+  ) => {
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      let rejectionReason = "";
+
+      if (status === "REJECTED") {
+        rejectionReason = prompt("Enter rejection reason:") || "";
+
+        if (!rejectionReason.trim()) {
+          alert("Rejection reason is required.");
+          return;
+        }
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/admin/policy-renewals/${renewalId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            status,
+            ...(status === "REJECTED" && {
+              rejectionReason,
+            }),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update renewal.");
+      }
+
+      alert(data.message);
+
+      fetchAllRenewals();
+    } catch (error) {
+      console.error("Update renewal error:", error);
+
+      alert(
+        error instanceof Error ? error.message : "Something went wrong."
+      );
     }
   };
 
@@ -374,6 +451,10 @@ export default function AdminDashboard() {
       setPolicyActionId(null);
     }
   };
+
+  useEffect(() => {
+    fetchAllRenewals();
+  }, []);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -1380,6 +1461,107 @@ export default function AdminDashboard() {
             </table>
           </div>
         </section>
+
+        {/* Policy Renewal Requests */}
+        <div className="mt-10 bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-2xl font-bold mb-6">
+            Policy Renewal Requests
+          </h2>
+
+          {renewals.length === 0 ? (
+            <p className="text-gray-500">
+              No renewal requests found.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="p-3">Customer</th>
+                    <th className="p-3">Policy Number</th>
+                    <th className="p-3">Insurance</th>
+                    <th className="p-3">Premium</th>
+                    <th className="p-3">Old Expiry</th>
+                    <th className="p-3">Request Date</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {renewals.map((renewal) => (
+                    <tr key={renewal.id} className="border-b">
+                      <td className="p-3">
+                        {renewal.customer.name}
+                        <p className="text-sm text-gray-500">
+                          {renewal.customer.email}
+                        </p>
+                      </td>
+
+                      <td className="p-3">
+                        {renewal.policy.policyNumber}
+                      </td>
+
+                      <td className="p-3">
+                        {renewal.policy.insuranceType}
+                      </td>
+
+                      <td className="p-3">
+                        BDT {Number(renewal.premiumAmount).toLocaleString()}
+                      </td>
+
+                      <td className="p-3">
+                        {new Date(
+                          renewal.oldExpiryDate
+                        ).toLocaleDateString()}
+                      </td>
+
+                      <td className="p-3">
+                        {new Date(
+                          renewal.createdAt
+                        ).toLocaleDateString()}
+                      </td>
+
+                      <td className="p-3">
+                        <span className="font-semibold">
+                          {renewal.status}
+                        </span>
+                      </td>
+
+                      <td className="p-3">
+                        {renewal.status === "PENDING" ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                updateRenewalStatus(renewal.id, "APPROVED")
+                              }
+                              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            >
+                              Approve
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                updateRenewalStatus(renewal.id, "REJECTED")
+                              }
+                              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">
+                            Processed
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

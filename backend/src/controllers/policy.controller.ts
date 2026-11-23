@@ -172,7 +172,7 @@ export const updatePolicyStatus = async (
   res: Response
 ) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const schema = z.object({
       status: z.enum(["ACTIVE", "EXPIRED", "CANCELLED"]),
@@ -230,7 +230,7 @@ export const deletePolicy = async (
   res: Response
 ) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const policy = await prisma.policy.findUnique({
       where: {
@@ -318,7 +318,7 @@ export const getPolicyById = async (
 ) => {
   try {
     const customerId = (req as any).customerId;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const policy = await prisma.policy.findFirst({
       where: {
