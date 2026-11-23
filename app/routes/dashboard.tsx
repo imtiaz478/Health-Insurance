@@ -20,7 +20,7 @@ const downloadPolicyPdf = async (policyId: string) => {
     const token = localStorage.getItem("customerToken");
 
     const response = await fetch(
-      `http://localhost:5000/api/policy-pdf/${policyId}/pdf`,
+      `https://health-insurance-dyap.onrender.com/api/policy-pdf/${policyId}/pdf`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -115,7 +115,7 @@ interface Payment {
   };
 }
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://health-insurance-dyap.onrender.com/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -173,7 +173,7 @@ export default function Dashboard() {
       const token = localStorage.getItem("customerToken");
 
       const response = await fetch(
-        "http://localhost:5000/api/policy-renewal/request",
+        "https://health-insurance-dyap.onrender.com/api/policy-renewal/request",
         {
           method: "POST",
           headers: {
@@ -206,7 +206,7 @@ export default function Dashboard() {
       const token = localStorage.getItem("customerToken");
 
       const response = await fetch(
-        "http://localhost:5000/api/policy-renewal/my-renewals",
+        "https://health-insurance-dyap.onrender.com/api/policy-renewal/my-renewals",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -462,7 +462,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("customerToken");
 
-      const response = await fetch("http://localhost:5000/api/payments", {
+      const response = await fetch("https://health-insurance-dyap.onrender.com/api/payments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

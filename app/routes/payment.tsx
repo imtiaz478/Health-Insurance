@@ -31,7 +31,7 @@ export default function PaymentPage() {
         const token = localStorage.getItem("customerToken");
 
         const response = await fetch(
-          `http://localhost:5000/api/payments/${paymentId}`,
+          `https://health-insurance-dyap.onrender.com/api/payments/${paymentId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ export default function PaymentPage() {
       const token = localStorage.getItem("customerToken");
 
       const response = await fetch(
-        "http://localhost:5000/api/payments/mock-pay",
+        "https://health-insurance-dyap.onrender.com/api/payments/mock-pay",
         {
           method: "POST",
           headers: {

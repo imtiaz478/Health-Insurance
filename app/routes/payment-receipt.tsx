@@ -28,7 +28,7 @@ export default function PaymentReceipt() {
         const token = localStorage.getItem("customerToken");
 
         const response = await fetch(
-          `http://localhost:5000/api/payments/${paymentId}`,
+          `https://health-insurance-dyap.onrender.com/api/payments/${paymentId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -170,7 +170,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/policies", {
+      const response = await fetch("https://health-insurance-dyap.onrender.com/api/policies", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/payments/admin/all",
+        "https://health-insurance-dyap.onrender.com/api/payments/admin/all",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("adminToken");
 
       const response = await fetch(
-        "http://localhost:5000/api/admin/policy-renewals",
+        "https://health-insurance-dyap.onrender.com/api/admin/policy-renewals",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/admin/policy-renewals/${renewalId}/status`,
+        `https://health-insurance-dyap.onrender.com/api/admin/policy-renewals/${renewalId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/policies/${id}/status`,
+        `https://health-insurance-dyap.onrender.com/api/policies/${id}/status`,
         {
           method: "PATCH",
           headers: {
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
     setPolicyActionId(id);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/policies/${id}`, {
+      const response = await fetch(`https://health-insurance-dyap.onrender.com/api/policies/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -474,22 +474,22 @@ export default function AdminDashboard() {
           claimsResponse,
           applicationsResponse,
         ] = await Promise.all([
-          fetch("http://localhost:5000/api/admin/profile", {
+          fetch("https://health-insurance-dyap.onrender.com/api/admin/profile", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5000/api/admin/dashboard", {
+          fetch("https://health-insurance-dyap.onrender.com/api/admin/dashboard", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5000/api/admin/customers", {
+          fetch("https://health-insurance-dyap.onrender.com/api/admin/customers", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5000/api/admin/quotes", {
+          fetch("https://health-insurance-dyap.onrender.com/api/admin/quotes", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5000/api/admin/claims", {
+          fetch("https://health-insurance-dyap.onrender.com/api/admin/claims", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5000/api/admin/policy-applications", {
+          fetch("https://health-insurance-dyap.onrender.com/api/admin/policy-applications", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -560,7 +560,7 @@ export default function AdminDashboard() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/quotes/${quoteId}/status`,
+        `https://health-insurance-dyap.onrender.com/api/admin/quotes/${quoteId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -621,7 +621,7 @@ export default function AdminDashboard() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/claims/${claimId}/status`,
+        `https://health-insurance-dyap.onrender.com/api/admin/claims/${claimId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -688,7 +688,7 @@ export default function AdminDashboard() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/policy-applications/${applicationId}/status`,
+        `https://health-insurance-dyap.onrender.com/api/admin/policy-applications/${applicationId}/status`,
         {
           method: "PATCH",
           headers: {

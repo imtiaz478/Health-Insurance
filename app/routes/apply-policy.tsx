@@ -34,7 +34,7 @@ export default function ApplyPolicy() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/policy-applications",
+        "https://health-insurance-dyap.onrender.com/api/policy-applications",
         {
           method: "POST",
           headers: {

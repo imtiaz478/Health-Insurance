@@ -66,7 +66,7 @@ export default function PremiumCalculator() {
       setIsLoading(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/premium/calculate",
+        "https://health-insurance-dyap.onrender.com/api/premium/calculate",
         {
           method: "POST",
           headers: {
